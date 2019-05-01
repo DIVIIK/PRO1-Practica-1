@@ -29,9 +29,9 @@ void direccio::init() {
 ///--- Canviar el valor de la direcció pel següent de la llista.
 ///--- Permet usar instruccions "++d" (on d és de tipus direcció).
 direccio& direccio::operator++() {
-  if (not STOP) d=dirs(d+1);
+  if (this->d != STOP) d=dirs(d+1);
   return (*this);
-}  
+}
 
 ///--- Obtenir les components x,y que representen un moviment 
 ///--- en aquesta direcció. P.ex  N -> (-1,0), NE -> (-1,1)
@@ -59,10 +59,10 @@ coord direccio::despl() const {
 ///--- Aquest mètode és útil per fer debugging.
 string direccio::mostra() const {
 	switch(this->d) {
-	    case NO: return "NO";		break;
-	    case NE: return "NE";		break;
-	    case SE: return "SE";		break;
-	    case SO: return "SO";		break;
-	    case STOP: return "STOP";	break;
+	    case NO: 	return "NORD-OEST";	break;
+	    case NE: 	return "NORD-EST";	break;
+	    case SE: 	return "SUD-EST";	break;
+	    case SO: 	return "SUD-OEST";	break;
+	    case STOP:	return "STOP";		break;
 	}
 }
