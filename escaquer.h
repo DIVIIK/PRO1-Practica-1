@@ -20,7 +20,7 @@ class escaquer {
    /// casella lliure extra, per si estem fora dels límits.
    casella lliure;
 
- public: 
+ public:
    //---- Constructora. Serveix per declarar una variable
    //---- de tipus "escaquer" de mida n x n inicialitzada
    //---- amb les fitxes inicials d'una partida de Dames.

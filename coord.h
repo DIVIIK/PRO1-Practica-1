@@ -2,10 +2,9 @@
 
 //---- La classe "coord" guarda una parella de coordenades
 
-
 class coord {
   public:
-    //---- Una posició esta formada per dues coordenades. 
+    //---- Una posició esta formada per dues coordenades.
     //---- Com que x i y són atributs públics, són accessibles
     //---- des del programa. Per exemple:  coord p;  p.x=3;
     //---- Recordeu que x són files i y columnes (no com a les matemàtiques convencionals)
