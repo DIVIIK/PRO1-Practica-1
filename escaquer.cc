@@ -16,19 +16,23 @@ escaquer::escaquer(nat n) {
 
   // inicialitza les caselles del escaquer
   // Primer les blanques
+  int j = 0;
   for (int i = n-1; i > n-4; --i) {
-    for (int j = 1; j < n; j+=2) {
-      if (i == n-2) --j;
+    for (; j < n; j+=2)
       taula[i][j].omple(1);
-    }
+
+    if (i == n-1) j = 1;
+    else j = 0;
   }
 
   // Ara les negres
+  j = 1;
   for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < n; j+=2) {
-      if (i == 1) ++j;
-      taula[i][j].omple(-1);  
-    }
+    for (;j < n; j+=2)
+      taula[i][j].omple(-1);
+
+    if (i == 0) j = 0;
+    else j = 1;
   }
 
 }
@@ -50,29 +54,46 @@ void escaquer::mostra() const {
   cout << endl << " " ;
   for (int i = 1; i <= taula.size(); ++i)
     cout << " " << i ;
+  cout << endl;
 
   for (int i = 0; i < taula.size(); ++i) {
     cout << i+1 ;
     for (int j = 0; j < taula.size(); j++)
-      cout << " " << taula[i][j].valor() ;
-  }
+      cout << " " << taula[i][j].mostra() ;
     cout << endl;
+  }
 }
 
 
 //---- Escriu a la pantalla el contingut del escaquer marcant amb '?'
 //---- les caselles on es poden posar fitxes del color donat.
 void escaquer::mostra(int color) const {
+  // Fem una pasada per guardar les coordenades de dames amb el color especificat.
+  vector<coord> coords;
+  for (int y = 0; y < taula.size(); ++y)
+    for (int x = 0; x < taula.size(); ++x)
+      if (taula[y][x].valor() == color ) coords.push_back(coord(x,y));
+  
+  // Obtenir les caselles amb possible moviment
+  for (int i = 0; i < coords.size(); ++i)
+    vector<coord> coords_possible = mov_possibles(coords[i]);
+
+  // Mostrar per pantalla
   cout << endl << " " ;
   for (int i = 1; i <= taula.size(); ++i)
     cout << " " << i ;
+  cout << endl;
 
   for (int i = 0; i < taula.size(); ++i) {
     cout << i+1 ;
-    for (int j = 0; j < taula.size(); j++)
-      cout << " " << taula[i][j].valor() ;
-  }
+    for (int j = 0; j < taula.size(); j++) {
+      if (color == taula[i][j].valor()) {
+        cout << " ?" ;
+      }
+      else cout << " " << taula[i][j].mostra() ;
+    }
     cout << endl;
+  }
 }
 
 
@@ -101,9 +122,28 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
 //---- o bé en los 2 direccions una peça del color
 //---- també es poden capturar fitxes de l'adversari (de color diferent al color donat).
 list<coord> escaquer::mov_possibles(coord c) const {
-  //???
-  list<coord> l;
-  return l;
+  // Tots els moviments possibles
+  vector<coord> coords;
+  direccio dir;
+  dir.init();
+  while (not dir.is_stop()) {
+    coord coordTemp = (c + dir.despl());
+
+    if (dins_limits(coordTemp)) {         // Comprovar que no es fora del tauler
+      if () {       // Comprovar que si es negra sigui cap abaix
+        if () {     // Comprovar que si es blanca sigui cap amunt
+          if () {   // Comprovar si es pot fer captura
+
+          }
+        }
+      }
+    }
+
+    coords.push_back(coordTemp);
+    ++dir;
+  }
+
+  return coords;
 }
 
 
