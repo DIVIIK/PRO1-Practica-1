@@ -76,7 +76,7 @@ void escaquer::mostra(int color) const {
   
   // Obtenir les caselles amb possible moviment
   for (int i = 0; i < coords.size(); ++i)
-    vector<coord> coords_possible = mov_possibles(coords[i]);
+    list<coord> coords_possible = mov_possibles(coords[i]);
 
   // Mostrar per pantalla
   cout << endl << " " ;
@@ -123,23 +123,50 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
 //---- també es poden capturar fitxes de l'adversari (de color diferent al color donat).
 list<coord> escaquer::mov_possibles(coord c) const {
   // Tots els moviments possibles
-  vector<coord> coords;
+  list<coord> coords;
   direccio dir;
   dir.init();
+  int valor = taula[c.y][c.x].valor(); // El valor de la fixa a moure
+
   while (not dir.is_stop()) {
-    coord coordTemp = (c + dir.despl());
+    coord coordDiag = (c + dir.despl()); // Les coordenades de la casella diagonal
+    int valorDiag = taula[coordDiag.y][coordDiag.x].valor(); // El valor de la casella diagonal
+    bool valid = true;
 
-    if (dins_limits(coordTemp)) {         // Comprovar que no es fora del tauler
-      if () {       // Comprovar que si es negra sigui cap abaix
-        if () {     // Comprovar que si es blanca sigui cap amunt
-          if () {   // Comprovar si es pot fer captura
+    // Comprovar que no es fora del tauler
+    if (not dins_limits(coordDiag)) valid = false;
 
-          }
-        }
+    // Comprovacions per moviment si es negra 
+    if (valor == casella::NEGRA)
+      if (direccio::NO | direccio::NE) valid = false; // Mirar si vas cap abaix
+    
+    // Comprovacions per moviment si es blanca
+    if (valor == casella::BLANCA)
+      if (direccio::SO | direccio::SE) valid = false; // Mirar si vas cap amunt
+
+    // Comprovacions per l'equip de les negres 
+    if (valor == casella::NEGRA or valor == casella::DAMA_NEGRA) {
+      // Comprovar si es pot fer captura
+      if ((valorDiag == casella::NEGRA) or (valorDiag == casella::DAMA_NEGRA)) valid = false; // Si son del mateix equip no
+      else if (valorDiag != casella::LLIURE) { // Tenim una fixa blanca (enemiga) a la diagonal
+        coord darrere = coordDiag + dir.despl();
+        if (taula[darrere.y][darrere.x].valor() == casella::LLIURE) coordDiag = darrere; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+        else valid = false; // Captura bloquejada per una fixa darrere
       }
     }
 
-    coords.push_back(coordTemp);
+    // Comprovacions per l'equip de les blanques 
+    if (valor == casella::BLANCA or valor == casella::DAMA_BLANCA) {
+      // Comprovar si es pot fer captura
+      if ((valorDiag == casella::BLANCA) or (valorDiag == casella::DAMA_BLANCA)) valid = false; // Si son del mateix equip no
+      else if (valorDiag != casella::LLIURE) { // Tenim una fixa negra (enemiga) a la diagonal
+        coord darrere = coordDiag + dir.despl();
+        if (taula[darrere.y][darrere.x].valor() == casella::LLIURE) coordDiag = darrere; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+        else valid = false; // Captura bloquejada per una fixa darrere
+      }
+    }
+
+    if (valid) coords.push_back(coordDiag);
     ++dir;
   }
 
