@@ -4,8 +4,8 @@ To do list:
 
 [OK] - coord
 
-[-] - direccio
+[OK] - direccio
 
-[-] - casella
+[OK] - casella
 
 [-] - escaquer
