@@ -49,6 +49,9 @@ char casella::mostra() const {
 		case -2:
 			return 'P';
 			break;
+		case 3:
+			return '?';
+			break;
 		default:
 			return '-';
 			break;
