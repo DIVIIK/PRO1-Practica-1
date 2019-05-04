@@ -127,9 +127,10 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
   int valorIni = taula[cini.x][cini.y].valor();
 
   // Comprovar que no es fora del tauler
-  if (not dins_limits(c))
-    despl = false;
-  else {
+  if (not dins_limits(c)) {
+      despl = false;
+      c = cini; // La coordenada final sera la ultima possible
+  } else {
     int valorDespl = taula[c.x][c.y].valor();
 
     // Comprovacions per moviment si es negra
@@ -140,10 +141,7 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
         if (d.mostra() == "NORD-EST" or d.mostra() == "NORD-OEST") despl = false; // Amb (direccio::NO | direccio::NE) no funciona be
             
       // Comprovar si hi ha una fixa al desplaçament
-      if ((valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA)) despl = false; // Si son del mateix equip
-   
-      // Mirar si es pot fer captura
-      if (despl) es_pot_capturar(cini,d,despl,c);
+      if (valorDespl != casella::LLIURE) es_pot_capturar(cini,d,despl,c);
     }
 
     // Comprovacions per moviment si es blanca
@@ -154,12 +152,8 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
         if (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") despl = false; // Amb (direccio::SO | direccio::SE) no funciona be
             
       // Comprovar si hi ha una fixa al desplaçament
-      if ((valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA)) despl = false; // Si son del mateix equip
-   
-      // Mirar si es pot fer captura
-      if (despl) es_pot_capturar(cini,d,despl,c);
+      if (valorDespl != casella::LLIURE) es_pot_capturar(cini,d,despl,c);
     }
-
   }
 }
 
@@ -178,32 +172,29 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
   int valorDespl;
   int valorDarrere;
   capturar = true;
+  valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-  if (not dins_limits(cDespl)) {
+  if (not dins_limits(c)) {
     capturar = false;
-    c = cini; // La coordenada final sera la ultima possible
+    c = cDespl; // La coordenada final sera la ultima possible
   } else {
-    valorDespl = taula[cDespl.x][cDespl.y].valor();
+    valorDarrere = taula[c.x][c.y].valor();
 
-    if (not dins_limits(c)) {
-      capturar = false;
-      c = cDespl; // La coordenada final sera la ultima possible
-    } else {
-      valorDarrere = taula[c.x][c.y].valor();
-
-      // Si anem amb blanques
-      if ((valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA))
-        if ( (valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA) ) // Tenim una fixa negra (enemiga) a la diagonal
-          if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
-
-      // Si anem amb negres
-      if ((valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA))
-      if ( (valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA) ) // Tenim una fixa negra (enemiga) a la diagonal
+    // Si anem amb blanques
+    if ((valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA)) {
+      if ( (valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA) ) { // Tenim una fixa negra (enemiga) a la diagonal
         if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+      } else capturar = false; // Fuego amigo
 
-      if (not capturar) c = cini; // La coordenada final sera la ultima possible
-
+    // Si anem amb negres
+    } else if ((valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA)) {
+      if ( (valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA) ) { // Tenim una fixa negra (enemiga) a la diagonal
+        if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+      } else capturar = false; // Fuego amigo
     }
+    
+    if (not capturar) c = cini; // La coordenada final sera la ultima possible
+
   }
 }
 
