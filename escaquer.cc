@@ -159,6 +159,7 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
       // Mirar si es pot fer captura
       if (despl) es_pot_capturar(cini,d,despl,c);
     }
+
   }
 }
 
@@ -178,22 +179,32 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
   int valorDarrere;
   capturar = true;
 
-  if (not dins_limits(cDespl)) capturar = false;
-  else valorDespl = taula[cDespl.x][cDespl.y].valor();
+  if (not dins_limits(cDespl)) {
+    capturar = false;
+    c = cini; // La coordenada final sera la ultima possible
+  } else {
+    valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-  if (not dins_limits(c)) capturar = false;
-  else valorDarrere = taula[c.x][c.y].valor();
+    if (not dins_limits(c)) {
+      capturar = false;
+      c = cDespl; // La coordenada final sera la ultima possible
+    } else {
+      valorDarrere = taula[c.x][c.y].valor();
 
-  // Si anem amb blanques
-  if ((valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA))
-    if ( (valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA) ) // Tenim una fixa negra (enemiga) a la diagonal
-      if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+      // Si anem amb blanques
+      if ((valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA))
+        if ( (valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA) ) // Tenim una fixa negra (enemiga) a la diagonal
+          if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
 
-  // Si anem amb negres
-  if ((valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA))
-  if ( (valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA) ) // Tenim una fixa negra (enemiga) a la diagonal
-    if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
+      // Si anem amb negres
+      if ((valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA))
+      if ( (valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA) ) // Tenim una fixa negra (enemiga) a la diagonal
+        if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
 
+      if (not capturar) c = cini; // La coordenada final sera la ultima possible
+
+    }
+  }
 }
 
 
@@ -223,14 +234,45 @@ list<coord> escaquer::mov_possibles(coord c) const {
 
 //---- Comprova si el color pot jugar (la peça de color es pot col·locar en algun lloc).
 bool escaquer::pot_jugar(int color) const {
-  //???
-  return true;
+  bool potJugar = false;
+  int x = 0;
+  int y = 0;
+
+  while (not potJugar and x < taula.size()) {
+    while (not potJugar and y < taula.size()) {
+      if (taula[x][y].valor() == color) potJugar = true;
+      ++y;
+    }
+    ++x;
+  }
+
+  return potJugar;
 }
 
 
 //---- Col·loca la fitxa de color a la coordena c i captura les fitxes (si es poden capturar) segons regles de les dames
 //---- S'avalua si realment es pot posar la fitxa o no
 bool escaquer::posa_fitxa(coord c, coord cf, int color) {
-  //???
-  return true;
+  //es_pot_despl(coord cini, direccio d, bool &despl, coord &c)
+
+  // Descobrir la direccio
+  bool trobat = false;
+  direccio dir;
+  dir.init();
+
+  while (not dir.is_stop() and not trobat) {
+    if (c + dir.despl() == cf) trobat = true;
+    else ++dir;
+  }
+  
+  bool esPot;
+  es_pot_despl(c,dir,esPot,cf);
+
+  // Fa el moviment
+  if (esPot) {
+    taula[cf.x][cf.y].omple(color);
+    taula[c.x][c.y].omple(casella::LLIURE);
+  }
+
+  return esPot;
 }
