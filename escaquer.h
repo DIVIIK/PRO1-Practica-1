@@ -20,8 +20,7 @@ class escaquer {
    /// casella lliure extra, per si estem fora dels límits.
    casella lliure;
 
-   //---- Comprova si la fixa es pot convertir en dama
-   //void convertir_dama(coord p, ) const;
+   void convertir_dama(coord &p, int &color);
 
  public:
    //---- Constructora. Serveix per declarar una variable

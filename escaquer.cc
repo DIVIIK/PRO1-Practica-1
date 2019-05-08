@@ -262,11 +262,11 @@ bool escaquer::pot_jugar(int color) const {
 
 //---- Col·loca la fitxa de color a la coordena c i captura les fitxes (si es poden capturar) segons regles de les dames
 //---- S'avalua si realment es pot posar la fitxa o no
-bool escaquer::posa_fitxa(coord c, coord cf, int color) {
-  /* PRE: c son les coordenades inicials, cf son les coordenades despres de posar la fixa, si ha sigut possible, */
-  /*      color indica quin tipus de fixa farà el moviment, -3 < color < 4 */
-  /* POST: Retorna cert si es possible realitzar el moviment, indicant que s'ha mogut la fixa de c a cf, d'altra forma retorna fals */
 
+/* PRE: c son les coordenades inicials, cf son les coordenades despres de posar la fixa, si ha sigut possible, */
+/*      color indica quin tipus de fixa farà el moviment, -3 < color < 4 */
+/* POST: Retorna cert si es possible realitzar el moviment, indicant que s'ha mogut la fixa de c a cf, d'altra forma retorna fals */
+bool escaquer::posa_fitxa(coord c, coord cf, int color) {
   // Descobrir la direccio
   bool trobat = false;
   direccio dir;
@@ -290,8 +290,20 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
 
       // Marca la casella com a visitada
       taula[cf.x][cf.y].marca();
+
+      // Mira si es pot convertir a dama
+      convertir_dama(cf,color);
     }
   }
 
   return esPot;
+}
+
+/* PRE: p son les coordenades on actualment es la fixa, color es el tipus de fixa */
+void escaquer::convertir_dama(coord &p, int &color) {
+  // Comproba si encara no es dama i segons l'equip la fila apropiada
+  if(color == casella::BLANCA and p.x == 0)
+    taula[p.x][p.y].omple(color++); // Converteix a dama
+  else if (color == casella::NEGRA and p.x == taula.size()-1)
+    taula[p.x][p.y].omple(color--); // Converteix a dama
 }
