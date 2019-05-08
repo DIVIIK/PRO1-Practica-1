@@ -39,7 +39,6 @@ direccio obtenir_direccio(coord &cini, coord &cfin, bool &trobat) {
 
 
 /* PRE: */
-/* POST: */
 void mostra_taula(const std::vector<std::vector<casella> > &tau) {
   cout << endl << " " ;
   for (int i = 1; i <= tau.size(); ++i)
@@ -56,7 +55,6 @@ void mostra_taula(const std::vector<std::vector<casella> > &tau) {
 
 
 /* PRE: */
-/* POST: */
 void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, direccio &dir, int &color) {
   t[c.x][c.y].omple(casella::LLIURE);
   t[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
@@ -67,6 +65,23 @@ void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, d
 
   // Mira si es pot convertir a dama
   convertir_dama(t, cf,color);
+}
+
+
+/* PRE: */
+/* POST: */
+bool comprova_moviments(int &valorIni,direccio &d) {
+  bool despl = true;
+
+  // Comprovacions negra
+  if ( (valorIni == casella::NEGRA) and (d.mostra() == "NORD-EST" or d.mostra() == "NORD-OEST") ) {
+    despl = false;
+
+  // Comprovacions blanca            
+  } else if ( (valorIni == casella::BLANCA) and (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") )
+    despl = false;
+
+  return despl;
 }
 
 
@@ -198,20 +213,12 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
     int valorDespl = taula[c.x][c.y].valor();
 
     // Comprovar si hi ha una fixa al desplaçament
-    if (valorDespl != casella::LLIURE) {
+    if (valorDespl != casella::LLIURE)
       despl = false;
-    
-    // Comprovacions negra
-    } else if ( (valorIni == casella::NEGRA) and (d.mostra() == "NORD-EST" or d.mostra() == "NORD-OEST") ) {
-      despl = false;
-    
-    // Comprovacions blanca            
-    } else if ( (valorIni == casella::BLANCA) and (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") )
-      despl = false;
+    else despl = comprova_moviments(valorIni,d);
 
     // La coordenada final es la inicial si no es pot realitzar el moviment
     //if (not despl) c = cini;
-
   }
 }
 
@@ -234,15 +241,19 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
     valorDarrere = taula[c.x][c.y].valor();
     valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-    // Comprovacions fuego amigo            
-    if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
-    else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
+    // Comprovacions moviment
+    if (comprova_moviments(valorIni,d)) {
 
-    // Si darrere no esta lliure no es pot capturar
-    if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
+      // Comprovacions fuego amigo
+      if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
+      else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
 
-    // La coordenada final es la inicial si no es pot realitzar la captura
-    if (not capturar) c = cini;
+      // Si darrere no esta lliure no es pot capturar
+      if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
+
+      // La coordenada final es la inicial si no es pot realitzar la captura
+      if (not capturar) c = cini;
+    }
   }
 }
 
@@ -306,7 +317,7 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
   bool esPot = false;
   
 
-    cout << "DEBUG:" << endl;
+    cout << "DEBUG1:" << endl;
     cout << "c:" << c.mostra1() << endl;
     cout << "cf:" << cf.mostra1() << endl;
 
@@ -316,10 +327,8 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
   // Nomès operacions valides
   if (trobat) {
     es_pot_despl(c,dir,esPot,cf);   
-    cout << "trobat" << endl;
 
     if (not esPot) {
-      cout << "no pot" << endl;
       es_pot_capturar(c,dir,esPot,cf);
 
       // Fem totes les captures possibles
@@ -327,7 +336,7 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
         // Fa el moviment si es posible
         moviment_fixa(taula,c,cf,dir,color);
         
-        // Mirem si podem fer mes captures
+        // Mirem si podem fer mes captures (FALLA)
         esPot = false;
         list<coord> coords = mov_possibles(cf);
         while (not coords.empty() and not esPot) {
@@ -335,14 +344,14 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
           coords.erase(coords.begin());
 
           direccio dir = obtenir_direccio(cf,co,trobat);
+          cout << "DEBUG2:" << endl;
+          cout << "cf:" << cf.mostra1() << endl;
+          cout << "co:" << co.mostra1() << endl;
           if (trobat) es_pot_capturar(cf,dir,esPot,co);
           if (esPot) posa_fitxa(cf,co,color);
-        }
+        } 
       }
-    } else {
-      moviment_fixa(taula,c,cf,dir,color);
-      cout << "moviment fixa" << endl;
-    }
+    } else moviment_fixa(taula,c,cf,dir,color);
   }
   return esPot;
 }
