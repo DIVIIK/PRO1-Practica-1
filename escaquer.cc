@@ -47,9 +47,9 @@ bool escaquer::dins_limits(coord p) const {
 }
 
 //---- Accedeix a la casella de la coord p del escaquer.
-casella& escaquer::operator()(coord p) {
   /* PRE: p es una coordenada (x,y), p = P */
   /* POST: Retorna la casella de l'escaquer corresponent a la coordenada P */
+casella& escaquer::operator()(coord p) {
   // Us exemple: 
   // escaquer e(8);
   // e(p).mostra();
@@ -287,6 +287,9 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
       taula[c.x][c.y].omple(casella::LLIURE);
       taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
       taula[cf.x][cf.y].omple(color);
+
+      // Marca la casella com a visitada
+      taula[cf.x][cf.y].marca();
     }
   }
 
