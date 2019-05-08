@@ -145,8 +145,7 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
 
   // Comprovar que no es fora del tauler
   if (not dins_limits(c)) {
-      despl = false;
-      c = cini; // La coordenada final sera la ultima possible
+    despl = false;
   } else {
     int valorDespl = taula[c.x][c.y].valor();
 
@@ -168,45 +167,27 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
 //---- Comprova si es pot capturar desde la coordenada cini en la direcció d
 //---- Retorna: capturar (si es pot capturar o no), c (coordenada final després de la captura)
 
-/* PRE: cini son les coordenades inicials, d es la direccio on es mou la peça, */
+/* PRE: cini son les coordenades inicials de la peça a moure, d es la direccio on es mou la peça, */
 /*      capturar indica si pot fer la captura o no, c son les coordenades finals resultants */ 
 void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c) const {
-
-  // valorIni     es la peça a moure
-  // valorDespl   es la peça a capturar
-  // valorDarrere es la peça darrere de valorDespl
-  // cini         es la coord de la peça a moure
-  // cDespl       es la coord de la peça a capturar
-  // c            es la coord final
-  coord cDespl = (cini + d.despl());
-  c = (cDespl + d.despl());
-  int valorIni = taula[cini.x][cini.y].valor();
-  int valorDespl;
-  int valorDarrere;
+  coord cDespl = (cini + d.despl());                    // coord de la peça a capturar
+  c = (cDespl + d.despl());                             // coord final teorica
+  int valorIni = taula[cini.x][cini.y].valor();         // peça a moure
+  int valorDespl = taula[cDespl.x][cDespl.y].valor();   // peça a capturar
+  int valorDarrere;                                     // peça darrere de valorDespl
   capturar = true;
-  valorDespl = taula[cDespl.x][cDespl.y].valor();
 
   if (not dins_limits(c)) {
     capturar = false;
-    c = cDespl; // La coordenada final sera la ultima possible
   } else {
     valorDarrere = taula[c.x][c.y].valor();
 
-    // Si anem amb blanques
-    if ((valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA)) {
-      if ( (valorDespl == casella::NEGRA) or (valorDespl == casella::DAMA_NEGRA) ) { // Tenim una fixa negra (enemiga) a la diagonal
-        if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
-      } else capturar = false; // Fuego amigo
+    // Comprovacions fuego amigo            
+    if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
+    else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
 
-    // Si anem amb negres
-    } else if ((valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA)) {
-      if ( (valorDespl == casella::BLANCA) or (valorDespl == casella::DAMA_BLANCA) ) { // Tenim una fixa negra (enemiga) a la diagonal
-        if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; // Si no hi ha ninguna darrere, es pot menjar i aquesta es la ubicacio final
-      } else capturar = false; // Fuego amigo
-    }
-
-    if (not capturar) c = cini; // La coordenada final sera la ultima possible
-
+    // Si darrere no esta lliure no es pot capturar
+    if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; 
   }
 }
 
