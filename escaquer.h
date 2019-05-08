@@ -20,8 +20,6 @@ class escaquer {
    /// casella lliure extra, per si estem fora dels límits.
    casella lliure;
 
-   void convertir_dama(coord &p, int &color);
-
  public:
    //---- Constructora. Serveix per declarar una variable
    //---- de tipus "escaquer" de mida n x n inicialitzada

@@ -3,6 +3,58 @@
 #include <math.h>
 #include "escaquer.h"
 
+//________________________________________//
+//////////// Metodes privats //////////////
+
+/* PRE: p son les coordenades on actualment es la fixa, color es el tipus de fixa */
+void convertir_dama(std::vector<std::vector<casella> > t, coord &p, int &color) {
+  // Comproba si encara no es dama i segons l'equip la fila apropiada
+  if(color == casella::BLANCA and p.x == 0)
+    t[p.x][p.y].omple(color++); // Converteix a dama
+  else if (color == casella::NEGRA and p.x == t.size()-1)
+    t[p.x][p.y].omple(color--); // Converteix a dama
+}
+
+/* PRE: */
+/* POST: */
+direccio obtenir_direccio(coord &cini, coord &cfin, bool &trobat) {
+  trobat = false;
+  direccio dir;
+  dir.init();
+
+  while (not dir.is_stop() and not trobat) {
+    if (cini + dir.despl() == cfin)  trobat = true;
+
+    // Normalitzar coordenades si fa falta
+    else if (cini + dir.despl() + dir.despl() == cfin) {
+      cfin = cini + dir.despl();
+      trobat = true;
+    }
+    
+    else ++dir;
+  }
+
+  return dir;
+}
+
+
+/* PRE: */
+/* POST: */
+void mostra_taula(std::vector<std::vector<casella> > tau) {
+  cout << endl << " " ;
+  for (int i = 1; i <= tau.size(); ++i)
+    cout << " " << i ;
+  cout << endl;
+
+  for (int i = 0; i < tau.size(); ++i) {
+    cout << i+1 ;
+    for (int j = 0; j < tau.size(); j++)
+      cout << " " << tau[i][j].mostra();
+    cout << endl;
+  }
+}
+
+
 ///////////////////////////////////////////
 //// Implementació de la classe escaquer ///
 
@@ -62,17 +114,7 @@ casella& escaquer::operator()(coord p) {
 
 //---- Escriu a la pantalla el contingut del escaquer.
 void escaquer::mostra() const {
-  cout << endl << " " ;
-  for (int i = 1; i <= taula.size(); ++i)
-    cout << " " << i ;
-  cout << endl;
-
-  for (int i = 0; i < taula.size(); ++i) {
-    cout << i+1 ;
-    for (int j = 0; j < taula.size(); j++)
-      cout << " " << taula[i][j].mostra();
-    cout << endl;
-  }
+  mostra_taula(taula);
 }
 
 
@@ -100,20 +142,11 @@ void escaquer::mostra(int color) const {
       coords_possible.erase(coords_possible.begin());
       taula_temp[c.x][c.y].omple(3); // Asigna l'interrogant
     }
+  cout << "MOSTRA PER PANTALLA" << endl;
   }
 
   // Mostrar per pantalla
-  cout << endl << " " ;
-  for (int i = 1; i <= taula_temp.size(); ++i)
-    cout << " " << i ;
-  cout << endl;
-
-  for (int i = 0; i < taula_temp.size(); ++i) {
-    cout << i+1 ;
-    for (int j = 0; j < taula_temp.size(); j++)
-      cout << " " << taula_temp[i][j].mostra();
-    cout << endl;
-  }
+  mostra_taula(taula_temp);
 }
 
 
@@ -161,6 +194,9 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
     } else if ( (valorIni == casella::BLANCA) and (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") )
       despl = false;
 
+    // La coordenada final es la inicial si no es pot realitzar el moviment
+    if (not despl) c = cini;
+
   }
 }
 
@@ -187,7 +223,10 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
     else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
 
     // Si darrere no esta lliure no es pot capturar
-    if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false; 
+    if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
+
+    // La coordenada final es la inicial si no es pot realitzar la captura
+    if (not capturar) c = cini;
   }
 }
 
@@ -205,10 +244,12 @@ list<coord> escaquer::mov_possibles(coord c) const {
   direccio dir;
   dir.init();
   coord coordFin;
+  bool valid;
 
   while (not dir.is_stop()) {
-    bool valid = true;
     es_pot_despl(c,dir,valid,coordFin);
+    if (not valid)
+      es_pot_capturar(c,dir,valid,coordFin);
 
     if (valid) coords.push_back(coordFin);
     ++dir;
@@ -246,46 +287,44 @@ bool escaquer::pot_jugar(int color) const {
 /*      color indica quin tipus de fixa farà el moviment, -3 < color < 4 */
 /* POST: Retorna cert si es possible realitzar el moviment, indicant que s'ha mogut la fixa de c a cf, d'altra forma retorna fals */
 bool escaquer::posa_fitxa(coord c, coord cf, int color) {
-  // Descobrir la direccio
-  bool trobat = false;
-  direccio dir;
-  dir.init();
-
-  while (not dir.is_stop() and not trobat) {
-    if ( (c + dir.despl() == cf) or (c + dir.despl() + dir.despl() == cf) ) trobat = true;
-    else ++dir;
-  }
-
+  bool trobat;
   bool esPot = false;
-
+  
+  direccio dir = obtenir_direccio(c,cf,trobat);
+  
+  // Nomès operacions valides
   if (trobat) {
     es_pot_despl(c,dir,esPot,cf);
+    if (not esPot) {
+      es_pot_capturar(c,dir,esPot,cf);
 
-    // Fa el moviment
-    if (esPot) {
-      taula[c.x][c.y].omple(casella::LLIURE);
-      taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
-      taula[cf.x][cf.y].omple(color);
+      // Fem totes les captures possibles
+      if (esPot) {
 
-      // Marca la casella com a visitada
-      taula[cf.x][cf.y].marca();
+        // Fa el moviment si es posible
+        taula[c.x][c.y].omple(casella::LLIURE);
+        taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
+        taula[cf.x][cf.y].omple(color);
 
-      // Mira si es pot convertir a dama
-      convertir_dama(cf,color);
+        // Marca la casella com a visitada
+        taula[cf.x][cf.y].marca();
+
+        // Mira si es pot convertir a dama
+        convertir_dama(taula, cf,color);
+        
+        // Mirem si podem fer mes captures
+        esPot = false;
+        list<coord> coords = mov_possibles(cf);
+        while (not coords.empty() and not esPot) {
+          coord co = *coords.begin();
+          coords.erase(coords.begin());
+
+          direccio dir = obtenir_direccio(cf,co,trobat);
+          if (trobat) es_pot_capturar(cf,dir,esPot,co);
+          if (esPot) posa_fitxa(cf,co,color);
+        }
+      }
     }
   }
-
   return esPot;
-}
-
-//________________________________________//
-//////////// Metodes privats //////////////
-
-/* PRE: p son les coordenades on actualment es la fixa, color es el tipus de fixa */
-void escaquer::convertir_dama(coord &p, int &color) {
-  // Comproba si encara no es dama i segons l'equip la fila apropiada
-  if(color == casella::BLANCA and p.x == 0)
-    taula[p.x][p.y].omple(color++); // Converteix a dama
-  else if (color == casella::NEGRA and p.x == taula.size()-1)
-    taula[p.x][p.y].omple(color--); // Converteix a dama
 }
