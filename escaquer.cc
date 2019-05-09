@@ -15,28 +15,6 @@ void convertir_dama(std::vector<std::vector<casella> > &t, coord &p, int &color)
     t[p.x][p.y].omple(color--); // Converteix a dama
 }
 
-/* PRE: */
-/* POST: */
-direccio obtenir_direccio(coord &cini, coord &cfin, bool &trobat) {
-  trobat = false;
-  direccio dir;
-  dir.init();
-
-  while (not dir.is_stop() and not trobat) {
-    if (cini + dir.despl() == cfin)  trobat = true;
-
-    // Normalitzar coordenades si fa falta
-    else if (cini + dir.despl() + dir.despl() == cfin) {
-      cfin = cini + dir.despl();
-      trobat = true;
-    }
-    
-    else ++dir;
-  }
-
-  return dir;
-}
-
 
 /* PRE: */
 void mostra_taula(const std::vector<std::vector<casella> > &tau) {
@@ -70,15 +48,15 @@ void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, d
 
 /* PRE: */
 /* POST: */
-bool comprova_moviments(int &valorIni,direccio &d) {
+bool comprova_moviments(int &color,direccio &d) {
   bool despl = true;
 
   // Comprovacions negra
-  if ( (valorIni == casella::NEGRA) and (d.mostra() == "NORD-EST" or d.mostra() == "NORD-OEST") ) {
+  if ( (color == casella::NEGRA) and (d.mostra() == "NORD-EST" or d.mostra() == "NORD-OEST") ) {
     despl = false;
 
   // Comprovacions blanca            
-  } else if ( (valorIni == casella::BLANCA) and (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") )
+  } else if ( (color == casella::BLANCA) and (d.mostra() == "SUD-EST" or d.mostra() == "SUD-OEST") )
     despl = false;
 
   return despl;
@@ -313,45 +291,38 @@ bool escaquer::pot_jugar(int color) const {
 /*      color indica quin tipus de fixa farà el moviment, -3 < color < 4 */
 /* POST: Retorna cert si es possible realitzar el moviment, indicant que s'ha mogut la fixa de c a cf, d'altra forma retorna fals */
 bool escaquer::posa_fitxa(coord c, coord cf, int color) {
-  bool trobat;
+  // Descobrir la direccio
+  bool trobat = false;
+  direccio dir;
+  dir.init();
+  
+  while (not dir.is_stop() and not trobat) {
+    if (c + dir.despl() == cf)  trobat = true;
+
+    // Normalitzar coordenades si fa falta
+    else if (c + dir.despl() + dir.despl() == cf) {
+      cf = c + dir.despl();
+      trobat = true;
+    } else ++dir;
+  }
+
   bool esPot = false;
-  
-
-    cout << "DEBUG1:" << endl;
-    cout << "c:" << c.mostra1() << endl;
-    cout << "cf:" << cf.mostra1() << endl;
-
-
-  direccio dir = obtenir_direccio(c,cf,trobat);
-  
-  // Nomès operacions valides
   if (trobat) {
-    es_pot_despl(c,dir,esPot,cf);   
+    es_pot_despl(c,dir,esPot,cf);
+    if (not esPot) es_pot_capturar(c,dir,esPot,cf);
 
-    if (not esPot) {
-      es_pot_capturar(c,dir,esPot,cf);
+    // Fa el moviment
+    if (esPot) {
+      taula[c.x][c.y].omple(casella::LLIURE);
+      taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
+      taula[cf.x][cf.y].omple(color);
 
-      // Fem totes les captures possibles
-      if (esPot) {
-        // Fa el moviment si es posible
-        moviment_fixa(taula,c,cf,dir,color);
-        
-        // Mirem si podem fer mes captures (FALLA)
-        esPot = false;
-        list<coord> coords = mov_possibles(cf);
-        while (not coords.empty() and not esPot) {
-          coord co = *coords.begin();
-          coords.erase(coords.begin());
-
-          direccio dir = obtenir_direccio(cf,co,trobat);
-          cout << "DEBUG2:" << endl;
-          cout << "cf:" << cf.mostra1() << endl;
-          cout << "co:" << co.mostra1() << endl;
-          if (trobat) es_pot_capturar(cf,dir,esPot,co);
-          if (esPot) posa_fitxa(cf,co,color);
-        } 
-      }
-    } else moviment_fixa(taula,c,cf,dir,color);
+      // Marca la casella com a visitada
+      taula[cf.x][cf.y].marca();
+      
+      // Mira si es pot convertir a dama
+      convertir_dama(taula, cf,color);
+    }
   }
   return esPot;
 }

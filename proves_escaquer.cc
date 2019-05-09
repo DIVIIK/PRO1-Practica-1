@@ -61,7 +61,9 @@ void prova_moviments(escaquer &e, coord ci, coord cf, int color) {
 
 int main() {
   /// Creem un escaquer 8x8
-  escaquer e(8);
+  int n;
+  cin >> n;
+  escaquer e(n);
 
   /// Dibuixem el escaquer
   e.mostra();
