@@ -22,15 +22,23 @@ void convertir_dama(std::vector<std::vector<casella> > &t, coord &c, int &color)
 
 /* PRE: t es l'escaquer de caselles */
 void mostra_taula(const std::vector<std::vector<casella> > &tau) {
-  cout << endl << " " ;
-  for (int i = 1; i <= tau.size(); ++i)
+  cout << endl << " ";
+  if (tau.size() > 9) cout << " ";
+
+  for (int i = 1; i <= tau.size(); ++i) {
+  	if (tau.size() > 9 and i <= 10) cout << " ";
     cout << " " << i ;
+  }
+
   cout << endl;
 
   for (int i = 0; i < tau.size(); ++i) {
     cout << i+1 ;
-    for (int j = 0; j < tau.size(); j++)
-      cout << " " << tau[i][j].mostra();
+    if (tau.size() > 9 and i < 9) cout << " ";
+    for (int j = 0; j < tau.size(); j++){
+    	if (tau.size() > 9) cout << " ";
+  		cout << " " << tau[i][j].mostra();
+    }
     cout << endl;
   }
 }
@@ -188,24 +196,22 @@ int escaquer::avalua() const {
 /* PRE: cini son les coordenades inicials, d es la direccio on es mou la peça, */
 /*      despl indica si pot fer el moviment o no, c son les coordenades finals resultants */ 
 void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const {
-  despl = true;
-  c = (cini + d.despl());
-  int valorIni = taula[cini.x][cini.y].valor();
+	despl = true;
+	c = (cini + d.despl());
+	int valorIni = taula[cini.x][cini.y].valor();
 
-  // Comprovar que no es fora del tauler
-  if (not dins_limits(c)) {
-    despl = false;
-  } else {
-    int valorDespl = taula[c.x][c.y].valor();
+	// Comprovar que no es fora del tauler
+	if (not dins_limits(c)) despl = false;
+	else {
+		int valorDespl = taula[c.x][c.y].valor();
 
-    // Comprovar que el moviment es d'una posicio
-    if (cini + d.despl() == c) {
-	    // Comprovar si hi ha una fixa al desplaçament
-	    if (valorDespl != casella::LLIURE)
-	      despl = false;
-	    else despl = comprova_moviments(valorIni,d);
-    } else despl = false;
-  }
+		// Comprovar que el moviment es d'una posicio
+		if (cini + d.despl() == c) {
+		    // Comprovar si hi ha una fixa al desplaçament
+		    if (valorDespl != casella::LLIURE) despl = false;
+		    else despl = comprova_moviments(valorIni,d);
+		} else despl = false;
+	}
 }
 
 //---- Comprova si es pot capturar desde la coordenada cini en la direcció d
@@ -239,7 +245,7 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
 
       // La coordenada final es la inicial si no es pot realitzar la captura
       if (not capturar) c = cini;
-    }
+    } else capturar = false;
   }
 }
 
@@ -260,11 +266,13 @@ list<coord> escaquer::mov_possibles(coord c) const {
   bool valid;
 
   while (not dir.is_stop()) {
-    es_pot_despl(c,dir,valid,coordFin);
-    if (not valid) 
-      es_pot_capturar(c,dir,valid,coordFin);
-    if (valid) coords.push_back(coordFin);
-    ++dir;
+  	// Moviment de fixa o vuit?
+	if (taula[c.x][c.y].valor() != casella::LLIURE) {
+	    es_pot_despl(c,dir,valid,coordFin);
+	    if (not valid) es_pot_capturar(c,dir,valid,coordFin);
+	    if (valid) coords.push_back(coordFin);
+	    ++dir;
+	} else ++dir;
   }
 
   return coords;
@@ -307,10 +315,6 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
 	  bool trobat = false;
 	  direccio dir;
 	  dir.init();
-	  
-	  cout << "DEBUG" << endl;
-	  cout << "c: " << c.mostra1() << endl;
-	  cout << "cf: " << cf.mostra1() << endl;
 
 	  while (not dir.is_stop() and not trobat) {
 	    if (c + dir.despl() == cf)  trobat = true;

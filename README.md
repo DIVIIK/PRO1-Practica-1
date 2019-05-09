@@ -8,5 +8,9 @@ To do list:
 
 [OK] - casella
 
-[-] - escaquer
-- Hacer cambios en el proves_escaquer para probar que funciona todo bien
+[OK] - escaquer
+
+---- Lliurament 2 ----
+
+[] - main
+	- Pendiente
