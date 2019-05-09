@@ -6,17 +6,21 @@
 //________________________________________//
 //////////// Metodes privats //////////////
 
-/* PRE: p son les coordenades on actualment es la fixa, color es el tipus de fixa */
-void convertir_dama(std::vector<std::vector<casella> > &t, coord &p, int &color) {
+
+//---- Converteix una fixa a dama si ha arribat al final del recorregut
+
+/* PRE: t es l'escaquer de caselles, c son les coordenades on actualment es la fixa, color es el tipus de fixa, -2 <= color <= 2 */
+void convertir_dama(std::vector<std::vector<casella> > &t, coord &c, int &color) {
   // Comproba si encara no es dama i segons l'equip la fila apropiada
-  if(color == casella::BLANCA and p.x == 0)
-    t[p.x][p.y].omple(color++); // Converteix a dama
-  else if (color == casella::NEGRA and p.x == t.size()-1)
-    t[p.x][p.y].omple(color--); // Converteix a dama
+  if(color == casella::BLANCA and c.x == 0)
+    t[c.x][c.y].omple(color++); // Converteix a dama
+  else if (color == casella::NEGRA and c.x == t.size()-1)
+    t[c.x][c.y].omple(color--); // Converteix a dama
 }
 
+//---- Mostra pel canal de sortida l'escaquer
 
-/* PRE: */
+/* PRE: t es l'escaquer de caselles */
 void mostra_taula(const std::vector<std::vector<casella> > &tau) {
   cout << endl << " " ;
   for (int i = 1; i <= tau.size(); ++i)
@@ -31,8 +35,11 @@ void mostra_taula(const std::vector<std::vector<casella> > &tau) {
   }
 }
 
+//---- 
 
-/* PRE: */
+/* PRE: t es l'escaquer de caselles, c son les coordenades on actualment es la fixa, cf son 	*/
+/* les coordenades on es vol moure la fixa, dir es la direcció en la que es vol moure la fixa, 	*/
+/* color es el tipus de fixa, -2 <= color <= 2													*/
 void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, direccio &dir, int &color) {
   t[c.x][c.y].omple(casella::LLIURE);
   t[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
@@ -45,9 +52,10 @@ void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, d
   convertir_dama(t, cf,color);
 }
 
+//---- Comprova que la fixa porta la direccio correcta, si es dama no es necessari.
 
-/* PRE: */
-/* POST: */
+/* PRE: color es el tipus de fixa/casella, -2 <= color <= 2, d es la direcció en la que es vol moure la fixa */
+/* POST: Retorna cert si es pot realitzar el moviment, d'altra forma retorna fals */
 bool comprova_moviments(int &color,direccio &d) {
   bool despl = true;
 

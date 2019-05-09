@@ -9,5 +9,4 @@ To do list:
 [OK] - casella
 
 [-] - escaquer
-- Pre y post de todas, ponerlo encima del metodo
 - Hacer cambios en el proves_escaquer para probar que funciona todo bien
