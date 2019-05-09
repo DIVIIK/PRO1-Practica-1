@@ -198,13 +198,13 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
   } else {
     int valorDespl = taula[c.x][c.y].valor();
 
-    // Comprovar si hi ha una fixa al desplaçament
-    if (valorDespl != casella::LLIURE)
-      despl = false;
-    else despl = comprova_moviments(valorIni,d);
-
-    // La coordenada final es la inicial si no es pot realitzar el moviment
-    //if (not despl) c = cini;
+    // Comprovar que el moviment es d'una posicio
+    if (cini + d.despl() == c) {
+	    // Comprovar si hi ha una fixa al desplaçament
+	    if (valorDespl != casella::LLIURE)
+	      despl = false;
+	    else despl = comprova_moviments(valorIni,d);
+    } else despl = false;
   }
 }
 
@@ -299,38 +299,48 @@ bool escaquer::pot_jugar(int color) const {
 /*      color indica quin tipus de fixa farà el moviment, -3 < color < 4 */
 /* POST: Retorna cert si es possible realitzar el moviment, indicant que s'ha mogut la fixa de c a cf, d'altra forma retorna fals */
 bool escaquer::posa_fitxa(coord c, coord cf, int color) {
-  // Descobrir la direccio
-  bool trobat = false;
-  direccio dir;
-  dir.init();
-  
-  while (not dir.is_stop() and not trobat) {
-    if (c + dir.despl() == cf)  trobat = true;
-
-    // Normalitzar coordenades si fa falta
-    else if (c + dir.despl() + dir.despl() == cf) {
-      cf = c + dir.despl();
-      trobat = true;
-    } else ++dir;
-  }
-
   bool esPot = false;
-  if (trobat) {
-    es_pot_despl(c,dir,esPot,cf);
-    if (not esPot) es_pot_capturar(c,dir,esPot,cf);
+  
+  // Moviment de fixa o vuit?
+  if (taula[c.x][c.y].valor() != casella::LLIURE) {
+	  // Descobrir la direccio
+	  bool trobat = false;
+	  direccio dir;
+	  dir.init();
+	  
+	  cout << "DEBUG" << endl;
+	  cout << "c: " << c.mostra1() << endl;
+	  cout << "cf: " << cf.mostra1() << endl;
 
-    // Fa el moviment
-    if (esPot) {
-      taula[c.x][c.y].omple(casella::LLIURE);
-      taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
-      taula[cf.x][cf.y].omple(color);
+	  while (not dir.is_stop() and not trobat) {
+	    if (c + dir.despl() == cf)  trobat = true;
 
-      // Marca la casella com a visitada
-      taula[cf.x][cf.y].marca();
-      
-      // Mira si es pot convertir a dama
-      convertir_dama(taula, cf,color);
-    }
+	    // Normalitzar coordenades si fa falta
+	    else if (c + dir.despl() + dir.despl() == cf) {
+	      cf = c + dir.despl();
+	      trobat = true;
+	    } else ++dir;
+	  }
+
+	  esPot = false;
+	  if (trobat) {
+	    es_pot_despl(c,dir,esPot,cf);
+	    if (not esPot) es_pot_capturar(c,dir,esPot,cf);
+
+	    // Fa el moviment
+	    if (esPot) {
+	      taula[c.x][c.y].omple(casella::LLIURE);
+	      taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
+	      taula[cf.x][cf.y].omple(color);
+
+	      // Marca la casella com a visitada
+	      taula[cf.x][cf.y].marca();
+	      
+	      // Mira si es pot convertir a dama
+	      convertir_dama(taula, cf,color);
+	    }
+	  }
   }
+
   return esPot;
 }
