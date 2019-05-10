@@ -285,17 +285,21 @@ list<coord> escaquer::mov_possibles(coord c) const {
 /* POST: Retorna cert si el color pot fer algun moviment amb les fixes del escaquer, si hi han. D'altre forma retorna fals */
 bool escaquer::pot_jugar(int color) const {
   bool potJugar = false;
-  int x = 0;
-  int y = 0;
 
-  while (not potJugar and x < taula.size()) {
-    while (not potJugar and y < taula.size()) {
-      if (taula[x][y].valor() == color) potJugar = true;
-      ++y;
-    }
-    ++x;
+  vector<coord> coords;
+  for (int x = 0; x < taula.size(); ++x)
+    for (int y = 0; y < taula.size(); ++y)
+      if (taula[x][y].valor() == color )
+        coords.push_back(coord(x,y));
+
+  // Obtenir les caselles amb possible moviment
+  int i = 0;
+  while(i < coords.size() and not potJugar) {
+    list<coord> coords_possible = mov_possibles(coords[i]);
+    if (not coords_possible.empty()) potJugar = true;
+    ++i;
   }
-
+      
   return potJugar;
 }
 
