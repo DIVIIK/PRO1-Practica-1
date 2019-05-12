@@ -91,7 +91,33 @@ void jugar_torn(escaquer &e, int color) {
   else if (color==casella::NEGRA) cout << endl<<"============== EQUIP NEGRE ==============="<<endl; 
 }
 
+//---- 
 
+/* PRE:  */
+/* POST: */
+void introduir_moviment(escaquer &e, int color) {
+  int fila, columna;
+
+  // No podem ficar un operator >> a la classe coord ? 
+  cout << "---- Peça a moure ----" << endl;
+  cout << "Fila: ";
+  cin >> fila;
+  cout << "Fila: ";
+  cin >> fila;
+  coord cini(fila-1,columna-1);
+
+  cout << endl << "---- Destí ----" << endl;
+  cout << "Fila: ";
+  cin >> fila;
+  cout << "Fila: ";
+  cin >> fila;
+  coord cfin(fila-1,columna-1);
+
+  bool moviment_fet = e.posa_fitxa(cini,cfin,color);
+  if(moviment_fet) cout<<"S'ha pogut realitzar el moviment"<<endl;
+  else cout<<"No s'ha pogut realitzar el moviment!"<<endl;
+
+}
 
 //---- Descripcio
 int main() {
@@ -107,6 +133,7 @@ int main() {
   // 3. Comprovar que el jugador que te el torn pugui fer algun moviment. 
   //    En cas que no pugui, haurà de passar el torn al seu contrincant.
   if (not e.pot_jugar(torn_actual)) {
+    cout << "El jugador no pot jugar ninguna peça.";
     if (torn_actual == casella::BLANCA) jugar_torn(e, casella::NEGRA);
     else jugar_torn(e, casella::BLANCA);
   }
@@ -118,8 +145,15 @@ int main() {
   // 5. Demanar a la persona que te el torn un moviment, es a dir, la posicio inicial (fila, columna)
   //    i la posició final (fila, columna). Si alguna fila o alguna columna no estan entre 1 i n voldra
   //    dir que el joc finalitza i s’executar`a l’u ́ltim pas 11.
+  introduir_moviment(e,torn_actual);
 
   // 6. Cal comprovar que el moviment sigui v`alid:
+  // Ja ho comprovem
 
+  // 7. Un cop validat el moviment, en el cas d'una captura, el mateix jugador torna a tirar.
+  // 
+
+  // 8. En el cas que la peça moguda es converteixi en Dama ha de quedar reflectit a l'escaquer.
+  // Ja ho comprovem en cada moviment
 
 }

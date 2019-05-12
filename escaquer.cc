@@ -221,7 +221,6 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
 /*      capturar indica si pot fer la captura o no, c son les coordenades finals resultants */ 
 void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c) const {
   coord cDespl = (cini + d.despl());                    // coord de la peça a capturar
-  c = (cDespl + d.despl());                             // coord final teorica
   int valorIni = taula[cini.x][cini.y].valor();         // peça a moure
   int valorDespl;                                       // peça a capturar
   int valorDarrere;                                     // peça darrere de valorDespl
@@ -233,8 +232,8 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
     valorDarrere = taula[c.x][c.y].valor();
     valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-    // Comprovacions moviment
-    if (comprova_moviments(valorIni,d)) {
+    // Comprovacions moviment i que sigui de dos posicions
+    if (comprova_moviments(valorIni,d) and cini + d.despl() + d.despl() == c) {
 
       // Comprovacions fuego amigo
       if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
@@ -243,8 +242,6 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
       // Si darrere no esta lliure no es pot capturar
       if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
 
-      // La coordenada final es la inicial si no es pot realitzar la captura
-      if (not capturar) c = cini;
     } else capturar = false;
   }
 }
@@ -321,16 +318,10 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
 	  dir.init();
 
 	  while (not dir.is_stop() and not trobat) {
-	    if (c + dir.despl() == cf)  trobat = true;
-
-	    // Normalitzar coordenades si fa falta
-	    else if (c + dir.despl() + dir.despl() == cf) {
-	      cf = c + dir.despl();
-	      trobat = true;
-	    } else ++dir;
+	    if (c + dir.despl() == cf or c + dir.despl() + dir.despl() == cf)  trobat = true;
+	    else ++dir;
 	  }
 
-	  esPot = false;
 	  if (trobat) {
 	    es_pot_despl(c,dir,esPot,cf);
 	    if (not esPot) es_pot_capturar(c,dir,esPot,cf);
