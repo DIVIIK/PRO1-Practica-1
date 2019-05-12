@@ -232,8 +232,8 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
     valorDarrere = taula[c.x][c.y].valor();
     valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-    // Comprovacions moviment i que sigui de dos posicions
-    if (comprova_moviments(valorIni,d) and cini + d.despl() + d.despl() == c) {
+    // Comprovacions moviment, que sigui de dos posicions i que realment sigui captura
+    if (comprova_moviments(valorIni,d) and cini + d.despl() + d.despl() == c and valorDespl != casella::LLIURE) {
 
       // Comprovacions fuego amigo
       if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
