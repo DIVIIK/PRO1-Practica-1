@@ -1,0 +1,85 @@
+
+La Dimensió de l'escaquer ha de ser múltiple de 2 i 8 com a minim 
+Quina és la Dimensió ? : 
+Les Opcions disponibles son (1) Bàsic (2) Especial 
+Quina opció vols ? : 
+========== Jugador B ==========
+  1 2 3 4 5 6 7 8
+1 - N - N - N - N
+2 N - N - N - N -
+3 - N - N - N - N
+4 - - - - - - - -
+5 - ? - ? - ? - ?
+6 B - B - B - B -
+7 - B - B - B - B
+8 B - B - B - B -
+================================
+
+Casella Origen 
+Fila i Columna (1-8): 
+Casella Final 
+Fila i Columna (1-8): 
+========== Jugador N ==========
+  1 2 3 4 5 6 7 8
+1 - N - N - N - N
+2 N - N - N - N -
+3 - N - N - N - N
+4 ? - ? - ? - ? -
+5 - - - - - B - -
+6 B - B - B - - -
+7 - B - B - B - B
+8 B - B - B - B -
+================================
+
+EMPAT
+Casella Origen 
+Fila i Columna (1-8): 
+Casella Final 
+Fila i Columna (1-8): 
+========== Jugador B ==========
+  1 2 3 4 5 6 7 8
+1 - N - N - N - N
+2 N - N - N - N -
+3 - N - N - N - ?
+4 - - - - ? - N -
+5 - ? - ? - B - -
+6 B - B - B - ? -
+7 - B - B - B - B
+8 B - B - B - B -
+================================
+
+EMPAT
+Casella Origen 
+Fila i Columna (1-8): 
+Casella Final 
+Fila i Columna (1-8): 
+========== Jugador B ==========
+  1 2 3 4 5 6 7 8
+1 - N - N - N - N
+2 N - N - N - N -
+3 - N - N - N - B
+4 - - - - - - - -
+5 - ? - ? - ? - -
+6 B - B - B - ? -
+7 - B - B - B - B
+8 B - B - B - B -
+================================
+
+Guanyen les Blanques
+Casella Origen 
+Fila i Columna (1-8): 
+Casella Final 
+Fila i Columna (1-8): 
+FINAL DE PARTIDA !! 
+====================
+  1 2 3 4 5 6 7 8
+1 - N - N - N - N
+2 N - N - N - N -
+3 - N - N - N - B
+4 - - - - - - - -
+5 - - - - - - - -
+6 B - B - B - - -
+7 - B - B - B - B
+8 B - B - B - B -
+
+Guanyen les Blanques
