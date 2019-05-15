@@ -226,6 +226,9 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
   int valorDarrere;                                     // peça darrere de valorDespl
   capturar = true;
 
+  // c será la coord final
+  if (cDespl == c) c = c + d.despl();
+
   if (not dins_limits(c)) {
     capturar = false;
   } else {
@@ -262,14 +265,14 @@ list<coord> escaquer::mov_possibles(coord c) const {
   coord coordFin;
   bool valid;
 
-  while (not dir.is_stop()) {
-  	// Moviment de fixa o vuit?
-	if (taula[c.x][c.y].valor() != casella::LLIURE) {
-	    es_pot_despl(c,dir,valid,coordFin);
-	    if (not valid) es_pot_capturar(c,dir,valid,coordFin);
-	    if (valid) coords.push_back(coordFin);
-	    ++dir;
-	} else ++dir;
+  // Moviment de fixa o vuit?
+  if (taula[c.x][c.y].valor() != casella::LLIURE) {
+    while (not dir.is_stop()) {
+      es_pot_despl(c,dir,valid,coordFin);
+      if (not valid) es_pot_capturar(c,dir,valid,coordFin);
+      if (valid) coords.push_back(coordFin);
+      ++dir;
+    }
   }
 
   return coords;
