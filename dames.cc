@@ -54,6 +54,17 @@ void passa_torn(escaquer &e, int &color) {
 
 /* PRE:  */
 /* POST: */
+void mostra(int &color) {
+  if (color==casella::BLANCA) cout << endl<<"========== Jugador B ==========";
+  else if (color==casella::NEGRA) cout << endl<<"========== Jugador N =========="; 
+}
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
 bool demana_coordenades(int &tamany, coord &c) {
   int fila, columna;
   bool seguimJugant = true;
@@ -81,55 +92,46 @@ bool demana_coordenades(int &tamany, coord &c) {
 
 /* PRE:  */
 /* POST: */
-bool introduir_moviment(escaquer &e,int &tamany, int &color) {
-  bool potCapturarMes = true;
+bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
   bool seguimJugant = true;
 
-  while (potCapturarMes) {
-    potCapturarMes = false;
+  cout << "---- Casella origen ----" << endl;
+  coord cini;
+  seguimJugant = demana_coordenades(tamany,cini);
 
-    cout << "---- Casella origen ----" << endl;
-    coord cini;
-    seguimJugant = demana_coordenades(tamany,cini);
+  if (seguimJugant) {
+    cout << endl << "---- Casella final ----" << endl;
+    coord cfin;
+    seguimJugant = demana_coordenades(tamany,cfin);
 
     if (seguimJugant) {
-      cout << endl << "---- Casella final ----" << endl;
-      coord cfin;
-      seguimJugant = demana_coordenades(tamany,cfin);
+      // Descobrir la direccio
+      bool trobat = false;
+      direccio dir;
+      dir.init();
+      while (not dir.is_stop() and not trobat)
+        if (cini + dir.despl() == cfin or cini + dir.despl() + dir.despl() == cfin)  trobat = true; else ++dir;
 
-      if (seguimJugant) {
-        // Descobrir la direccio
-        bool trobat = false;
-        direccio dir;
-        dir.init();
-        while (not dir.is_stop() and not trobat)
-          if (cini + dir.despl() == cfin or cini + dir.despl() + dir.despl() == cfin)  trobat = true; else ++dir;
+      bool moviment_fet;
 
-        bool moviment_fet;
+      if (trobat) {
+        bool espot;
+        e.es_pot_capturar(cini,dir,espot,cfin);
+        if (espot) {
+          moviment_fet = e.posa_fitxa(cini,cfin,color);
+          haCapturat = true;
+        } else {
+          moviment_fet = e.posa_fitxa(cini,cfin,color);
+          haCapturat = false;
+        }
 
-        if (trobat) {
-          bool espot;
-          e.es_pot_capturar(cini,dir,espot,cfin);
-          if (espot) {
-            moviment_fet = e.posa_fitxa(cini,cfin,color);
-            potCapturarMes = true;
-          } else 
-            moviment_fet = e.posa_fitxa(cini,cfin,color);
-
-          util::neteja();
-          if(moviment_fet) {
-            //cout << endl << "S'ha pogut realitzar el moviment"<< endl;
-            if (potCapturarMes) {
-              // Mirem si pots menjar mes
-              list<coord> coords_possible = e.mov_possibles(cfin);
-              if (coords_possible.empty()) potCapturarMes = false;
-            }
-          } else {
-            potCapturarMes = false; // Per asegurarnos que no repeteixi
-            //cout << "No s'ha pogut realitzar el moviment!"<< endl;
-          }
-        } else seguimJugant = false; // cout << "No s'ha pogut realitzar el moviment!"<< endl;
-      }
+        util::neteja();
+        if(moviment_fet) {
+          //cout << endl << "S'ha pogut realitzar el moviment"<< endl;
+        } else {
+          //cout << "No s'ha pogut realitzar el moviment!"<< endl;
+        }
+      } else seguimJugant = false; // cout << "No s'ha pogut realitzar el moviment!"<< endl;
     }
   }
   return seguimJugant;
@@ -158,12 +160,15 @@ void terminar(escaquer &e) {
   avalua(e);
 }
 
-
+ 
 
 //---- Descripcio
 int main() {
   // 1. Inicialitzar l'escaquer de mida n·n
   int tamany, opcio;
+  bool haCapturat;
+  coord posicio;
+
   escaquer e = començar_partida(tamany, opcio);
 
   // 2. Inicialitzar el torn a les peçes BLANQUES
@@ -194,12 +199,12 @@ int main() {
     // 6. Cal comprovar que el moviment sigui valid:
     // 7. Un cop validat el moviment, en el cas d'una captura, el mateix jugador torna a tirar.
     // 8. En el cas que la peça moguda es converteixi en Dama ha de quedar reflectit a l'escaquer.
-    seguimJugant = introduir_moviment(e,tamany,torn_actual);
-
+    seguimJugant = introduir_moviment(e,tamany,torn_actual,haCapturat);
+    
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
-    if (seguimJugant) {
-      passa_torn(e, torn_actual);
-    }
+    if (not haCapturat) passa_torn(e, torn_actual);
+    else mostra(torn_actual);
+
   }  // 10. Repetir el procediment desde 3 fins acabar la partida o algun dels dos jugadors vulgui aturar
 
   // 11. Tant si s'acaba la partida com si s'ha aturat sense finalitzar-la, es mostra per pantalla l'escaquer 
