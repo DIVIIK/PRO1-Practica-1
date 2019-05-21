@@ -12,11 +12,14 @@
 /* PRE: t es l'escaquer de caselles, c son les coordenades on actualment es la fixa, color es el tipus de fixa, -2 <= color <= 2 */
 void convertir_dama(std::vector<std::vector<casella> > &t, coord &c, int &color) {
   // Comproba si encara no es dama i segons l'equip la fila apropiada
-  if(color == casella::BLANCA and c.x == 0)
+  if(color == casella::BLANCA and c.x == 0) {
     t[c.x][c.y].omple(color+1); // Converteix a dama
-  else if (color == casella::NEGRA and c.x == t.size()-1)
+    cout << endl << "Enhorabona has aconseguir una DAMA!!" << endl;
+  }
+  else if (color == casella::NEGRA and c.x == t.size()-1) {
     t[c.x][c.y].omple(color-1); // Converteix a dama
-  cout << endl << "Enhorabona has aconseguir una DAMA!!" << endl;
+    cout << endl << "Enhorabona has aconseguir una DAMA!!" << endl;
+  }
 }
 
 //---- Mostra pel canal de sortida l'escaquer

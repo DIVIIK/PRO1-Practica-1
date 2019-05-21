@@ -202,8 +202,10 @@ int main() {
     seguimJugant = introduir_moviment(e,tamany,torn_actual,haCapturat);
     
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
-    if (not haCapturat) passa_torn(e, torn_actual);
-    else mostra(torn_actual);
+    if (seguimJugant) {
+      if (not haCapturat) passa_torn(e, torn_actual);
+      else mostra(torn_actual);
+    }
 
   }  // 10. Repetir el procediment desde 3 fins acabar la partida o algun dels dos jugadors vulgui aturar
 
