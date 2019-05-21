@@ -3,6 +3,27 @@
 
 using namespace std;
 
+
+
+//---- Comprova que la fixa es del teu equip
+
+/* PRE: color es l'equip en el torn actual */
+/* POST: Retorna cert si es pot realitzar el moviment, d'altra forma retorna fals */
+bool comprova_equip(escaquer &e, int &color, coord &c) {
+  bool res = true;
+  int turnActual = color;
+  int valorFixa = e(c).valor();
+
+  if (valorFixa == casella::DAMA_BLANCA) turnActual = casella::BLANCA;
+  else if (valorFixa == casella::DAMA_NEGRA) turnActual = casella::NEGRA;
+
+  if (valorFixa == turnActual) res = true;
+  else res = false;
+  return res;
+}
+
+
+
 //---- Inicialitzar l'escaquer de mida n·n
 
 /* PRE:  */
@@ -94,44 +115,44 @@ bool demana_coordenades(int &tamany, coord &c) {
 /* POST: */
 bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
   bool seguimJugant = true;
+  bool moviment_valid = false;
 
-  cout << "---- Casella origen ----" << endl;
-  coord cini;
-  seguimJugant = demana_coordenades(tamany,cini);
+  while (not moviment_valid and seguimJugant) {
 
-  if (seguimJugant) {
-    cout << endl << "---- Casella final ----" << endl;
-    coord cfin;
-    seguimJugant = demana_coordenades(tamany,cfin);
+    cout << "---- Casella origen ----" << endl;
+    coord cini;
+    seguimJugant = demana_coordenades(tamany,cini);
 
     if (seguimJugant) {
-      // Descobrir la direccio
-      bool trobat = false;
-      direccio dir;
-      dir.init();
-      while (not dir.is_stop() and not trobat)
-        if (cini + dir.despl() == cfin or cini + dir.despl() + dir.despl() == cfin)  trobat = true; else ++dir;
+      cout << endl << "---- Casella final ----" << endl;
+      coord cfin;
+      seguimJugant = demana_coordenades(tamany,cfin);
 
-      bool moviment_fet;
+      // Comprobar si esta movent una fixa del seu equip
+      if (seguimJugant) moviment_valid = comprova_equip(e, color, cini);
 
-      if (trobat) {
-        bool espot;
-        e.es_pot_capturar(cini,dir,espot,cfin);
-        if (espot) {
-          moviment_fet = e.posa_fitxa(cini,cfin,color);
-          haCapturat = true;
-        } else {
-          moviment_fet = e.posa_fitxa(cini,cfin,color);
-          haCapturat = false;
-        }
+      if (seguimJugant and moviment_valid) {
+        // Descobrir la direccio
+        bool trobat = false;
+        direccio dir;
+        dir.init();
+        while (not dir.is_stop() and not trobat)
+          if (cini + dir.despl() == cfin or cini + dir.despl() + dir.despl() == cfin)  trobat = true; else ++dir;
 
-        util::neteja();
-        if(moviment_fet) {
-          //cout << endl << "S'ha pogut realitzar el moviment"<< endl;
-        } else {
-          //cout << "No s'ha pogut realitzar el moviment!"<< endl;
-        }
-      } else seguimJugant = false; // cout << "No s'ha pogut realitzar el moviment!"<< endl;
+        if (trobat) {
+          bool espot;
+          e.es_pot_capturar(cini,dir,espot,cfin);
+          if (espot) haCapturat = true;
+          else haCapturat = false;
+
+          moviment_valid = e.posa_fitxa(cini,cfin,color);
+
+          util::neteja();
+        } else moviment_valid = false;
+      }
+      
+      if (seguimJugant and not moviment_valid) cout << "Error: Posició ja ocupada o moviment no vàlid."<< endl;
+
     }
   }
   return seguimJugant;

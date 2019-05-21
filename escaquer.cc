@@ -6,7 +6,6 @@
 //________________________________________//
 //////////// Metodes privats //////////////
 
-
 //---- Converteix una fixa a dama si ha arribat al final del recorregut
 
 /* PRE: t es l'escaquer de caselles, c son les coordenades on actualment es la fixa, color es el tipus de fixa, -2 <= color <= 2 */
@@ -68,7 +67,7 @@ void moviment_fixa(std::vector<std::vector<casella> > &t, coord &c, coord &cf, d
 
 /* PRE: color es el tipus de fixa/casella, -2 <= color <= 2, d es la direcció en la que es vol moure la fixa */
 /* POST: Retorna cert si es pot realitzar el moviment, d'altra forma retorna fals */
-bool comprova_moviments(int &color,direccio &d) {
+bool comprova_direccio(int &color,direccio &d) {
   bool despl = true;
 
   // Comprovacions negra
@@ -159,8 +158,6 @@ void escaquer::mostra(int color) const {
       if (taula[x][y].valor() == color )
         coords.push_back(coord(x,y));
   
-  // Copia de la taula original on ficarem els interrogants, per questions 
-  // d'eficiencia es una de les millors maneres que hem trobat de fer-ho.
   std::vector<std::vector<casella> > taula_temp = taula;
 
   // Obtenir les caselles amb possible moviment
@@ -201,7 +198,6 @@ int escaquer::avalua() const {
 /*      despl indica si pot fer el moviment o no, c son les coordenades finals resultants */ 
 void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const {
 	despl = true;
-	c = (cini + d.despl());
 	int valorIni = taula[cini.x][cini.y].valor();
 
 	// Comprovar que no es fora del tauler
@@ -213,7 +209,7 @@ void escaquer::es_pot_despl(coord cini, direccio d, bool &despl, coord &c) const
 		if (cini + d.despl() == c) {
 		    // Comprovar si hi ha una fixa al desplaçament
 		    if (valorDespl != casella::LLIURE) despl = false;
-		    else despl = comprova_moviments(valorIni,d);
+		    else despl = comprova_direccio(valorIni,d);
 		} else despl = false;
 	}
 }
@@ -230,27 +226,27 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
   int valorDarrere;                                     // peça darrere de valorDespl
   capturar = true;
 
-  // c será la coord final
-  if (cDespl == c) c = c + d.despl();
+  // Es un moviment o dos?
+  if (cDespl == c) {
+    if (not dins_limits(c)) {
+      capturar = false;
+    } else {
+      valorDarrere = taula[c.x][c.y].valor();
+      valorDespl = taula[cDespl.x][cDespl.y].valor();
 
-  if (not dins_limits(c)) {
-    capturar = false;
-  } else {
-    valorDarrere = taula[c.x][c.y].valor();
-    valorDespl = taula[cDespl.x][cDespl.y].valor();
+      // Comprovacions moviment, que sigui de dos posicions i que realment sigui captura
+      if (comprova_direccio(valorIni,d) and cini + d.despl() + d.despl() == c and valorDespl != casella::LLIURE) {
+        // Comprovacions fuego amigo
+        if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
+        else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
 
-    // Comprovacions moviment, que sigui de dos posicions i que realment sigui captura
-    if (comprova_moviments(valorIni,d) and cini + d.despl() + d.despl() == c and valorDespl != casella::LLIURE) {
+        // Si darrere no esta lliure no es pot capturar
+        if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
 
-      // Comprovacions fuego amigo
-      if ( (valorIni == casella::BLANCA or valorIni == casella::DAMA_BLANCA) and (valorDespl == casella::BLANCA or valorDespl == casella::DAMA_BLANCA) ) capturar = false;
-      else if ( (valorIni == casella::NEGRA or valorIni == casella::DAMA_NEGRA) and (valorDespl == casella::NEGRA or valorDespl == casella::DAMA_NEGRA) ) capturar = false;
+      } else capturar = false;
+    }
+  } else capturar = false;
 
-      // Si darrere no esta lliure no es pot capturar
-      if (taula[c.x][c.y].valor() != casella::LLIURE) capturar = false;
-
-    } else capturar = false;
-  }
 }
 
 
@@ -272,6 +268,7 @@ list<coord> escaquer::mov_possibles(coord c) const {
   // Moviment de fixa o vuit?
   if (taula[c.x][c.y].valor() != casella::LLIURE) {
     while (not dir.is_stop()) {
+      coordFin = c + dir.despl();
       es_pot_despl(c,dir,valid,coordFin);
       if (not valid) es_pot_capturar(c,dir,valid,coordFin);
       if (valid) coords.push_back(coordFin);
@@ -331,8 +328,7 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
 
 	  if (trobat) {
 	    es_pot_despl(c,dir,esPot,cf);
-	    if (not esPot) es_pot_capturar(c,dir,esPot,cf);
-
+      if (not esPot) es_pot_capturar(c,dir,esPot,cf);
 	    // Fa el moviment
 	    if (esPot) {
 	      taula[c.x][c.y].omple(casella::LLIURE);
