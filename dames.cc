@@ -170,12 +170,53 @@ void avalua(escaquer &e) {
 
 /* PRE:  */
 /* POST: */
-void tornOrdinador(escaquer &e) {
+void tornOrdinador(escaquer &e, int &tamany) {
   avalua(e);
   cout << "Es el torn de l'ordinador" << endl;
   cout << "L'arbre construit es" << endl;
 
+  //// Generar arbre ////
 
+  arbre<coord> empty;
+  list<arbre<coord> > arbres;
+  list<arbre<coord> >::iterator it = arbres.begin();
+
+  // Obtenir coordenades
+  for (int x = 0; x < tamany; ++x)
+    for (int y = 0; y < tamany; ++y)
+      if (e(coord(x,y)).valor() == casella::NEGRA) {
+        arbre<coord> arb(coord(x,y),empty,empty);
+        arbres.insert(it,arb);
+      }
+
+  // Iterem cada peça (arbre)
+  it = arbres.begin();
+  while (it != arbres.end()) {
+    // Guardem nomes les captures
+    direccio dir;
+    dir.init();
+    while (not dir.is_stop()) {
+      arbre<coord> arb = *it;
+      arbre<coord> fe = arb.fe();
+      arbre<coord> fd = arb.fd();
+      bool esPot;
+      coord cini = arb.arrel();
+      coord cfin = cini + dir.despl() + dir.despl();
+      e.es_pot_capturar(cini, dir, esPot, cfin);
+      if (esPot) {
+        arbre<coord> fill(cfin, empty, empty);
+        if (dir.mostra() == "NORD-OEST" or dir.mostra() == "SUD-OEST") arbre<coord> arb(cini, fill, fd);
+        else if (dir.mostra() == "NORD-EST" or dir.mostra() == "SUD-EST") arbre<coord> arb(cini, fe, fill);
+        cout << "Fill: "; // ARREGLAR
+        cout << fill << endl << endl;        
+        *it = arb;
+      } 
+      ++dir;
+    }
+
+    cout << *it << endl << endl;
+    ++it;
+  }
 
 }
 
@@ -243,7 +284,7 @@ int main() {
     }
 
     // 4.1 Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
-    if (opcio == 2 and torn_actual == casella::NEGRA) tornOrdinador(e);
+    if (opcio == 2 and torn_actual == casella::NEGRA) tornOrdinador(e,tamany);
     // 4.2 Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
     else seguimJugant = tornJugador(e, torn_actual, aux, tamany, haCapturat);
 

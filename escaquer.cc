@@ -228,7 +228,7 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
   capturar = true;
 
   // Es un moviment o dos?
-  if (cDespl == c) {
+  if (cDespl + d.despl() == c) {
     if (not dins_limits(c)) {
       capturar = false;
     } else {
@@ -272,6 +272,10 @@ list<coord> escaquer::mov_possibles(coord c) const {
       coordFin = c + dir.despl();
       es_pot_despl(c,dir,valid,coordFin);
       if (not valid) es_pot_capturar(c,dir,valid,coordFin);
+      if (not valid) {
+        coordFin = coordFin + dir.despl();
+        es_pot_capturar(c,dir,valid,coordFin);
+      }
       if (valid) coords.push_back(coordFin);
       ++dir;
     }
