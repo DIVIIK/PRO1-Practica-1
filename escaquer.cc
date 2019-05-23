@@ -29,15 +29,16 @@ void mostra_taula(const std::vector<std::vector<casella> > &tau) {
   if (tau.size() > 9) cout << " ";
 
   for (int i = 1; i <= tau.size(); ++i) {
-  	if (tau.size() > 9 and i <= 10) cout << " ";
-    cout << " " << i ;
+  	cout << " ";
+    if (tau.size() > 9 and i <= 9) cout << "0";
+    cout << i ;
   }
 
   cout << endl;
 
   for (int i = 0; i < tau.size(); ++i) {
+    if (tau.size() > 9 and i < 9) cout << "0";
     cout << i+1 ;
-    if (tau.size() > 9 and i < 9) cout << " ";
     for (int j = 0; j < tau.size(); j++){
     	if (tau.size() > 9) cout << " ";
   		cout << " " << tau[i][j].mostra();

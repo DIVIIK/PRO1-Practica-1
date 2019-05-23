@@ -1,9 +1,5 @@
-#include <iostream>
 #include "escaquer.h"
-
-using namespace std;
-
-
+#include "arbreIOcoord.h"
 
 //---- Comprova que la fixa es del teu equip
 
@@ -56,9 +52,9 @@ escaquer començar_partida(int &tamany, int &opcio) {
 
 /* PRE:  */
 /* POST: */
-void passa_torn(escaquer &e, int &color) {
+void passa_torn(escaquer &e, int &color, int &opcio) {
   if (color==casella::BLANCA) {
-    cout << endl<<"========== Jugador N ==========";
+    if (opcio != 2) cout << endl<<"========== Jugador N ==========";
     color = casella::NEGRA;
   } else if (color==casella::NEGRA) {
     cout << endl<<"========== Jugador B =========="; 
@@ -159,13 +155,54 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 }
 
 
+//---- 
 
+/* PRE:  */
+/* POST: */
 void avalua(escaquer &e) {
   int val = e.avalua();
-  if (val > 0) cout<<"Guanyen les blanques."<<endl<<endl;
-  else if (val < 0) cout<<"Guanyen les negres."<<endl<<endl;
-  else cout<<"EMPAT"<<endl<<endl;
+  if (val > 0) cout<<"Guanyen les blanques."<<endl;
+  else if (val < 0) cout<<"Guanyen les negres."<<endl;
+  else cout<<"EMPAT"<<endl;
 }
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+void tornOrdinador(escaquer &e) {
+  avalua(e);
+  cout << "Es el torn de l'ordinador" << endl;
+  cout << "L'arbre construit es" << endl;
+
+
+
+}
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+bool tornJugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &haCapturat) {
+  e.mostra(torn_actual);
+  cout << "================================" << endl << endl;
+
+  // Mostrar el resultat provisional de la partida
+  if (aux) avalua(e); 
+  else aux = true;
+
+  // 5. Demanar a la persona que te el torn un moviment, es a dir, la posicio inicial (fila, columna)
+  //    i la posició final (fila, columna). Si alguna fila o alguna columna no estan entre 1 i n voldra
+  //    dir que el joc finalitza i s’executara l'ultim pas 11.
+  // 6. Cal comprovar que el moviment sigui valid:
+  // 7. Un cop validat el moviment, en el cas d'una captura, el mateix jugador torna a tirar.
+  // 8. En el cas que la peça moguda es converteixi en Dama ha de quedar reflectit a l'escaquer.
+  return introduir_moviment(e,tamany,torn_actual,haCapturat);
+}
+
 
 
 //---- 
@@ -194,7 +231,7 @@ int main() {
 
   // 2. Inicialitzar el torn a les peçes BLANQUES
   int torn_actual;
-  passa_torn(e, torn_actual);
+  passa_torn(e, torn_actual, opcio);
 
   // 3. Comprovar que el jugador que te el torn pugui fer algun moviment. 
   //    En cas que no pugui, haurà de passar el torn al seu contrincant.
@@ -203,28 +240,17 @@ int main() {
   while (seguimJugant) {
     if (not e.pot_jugar(torn_actual)) {
       cout << "El jugador no pot jugar ninguna peça.";
-      passa_torn(e, torn_actual);
+      passa_torn(e, torn_actual, opcio);
     }
 
-    // 4. Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
-    e.mostra(torn_actual);
-    cout << "================================" << endl << endl;
+    // 4.1 Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
+    if (opcio == 2 and torn_actual == casella::NEGRA) tornOrdinador(e);
+    // 4.2 Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
+    else seguimJugant = tornJugador(e, torn_actual, aux, tamany, haCapturat);
 
-    // Mostrar el resultat provisional de la partida
-    if (aux) avalua(e); 
-    else aux = true;
-
-    // 5. Demanar a la persona que te el torn un moviment, es a dir, la posicio inicial (fila, columna)
-    //    i la posició final (fila, columna). Si alguna fila o alguna columna no estan entre 1 i n voldra
-    //    dir que el joc finalitza i s’executara l'ultim pas 11.
-    // 6. Cal comprovar que el moviment sigui valid:
-    // 7. Un cop validat el moviment, en el cas d'una captura, el mateix jugador torna a tirar.
-    // 8. En el cas que la peça moguda es converteixi en Dama ha de quedar reflectit a l'escaquer.
-    seguimJugant = introduir_moviment(e,tamany,torn_actual,haCapturat);
-    
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
     if (seguimJugant) {
-      if (not haCapturat) passa_torn(e, torn_actual);
+      if (not haCapturat) passa_torn(e, torn_actual, opcio);
       else mostra(torn_actual);
     }
 
