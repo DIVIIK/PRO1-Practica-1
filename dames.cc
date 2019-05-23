@@ -1,4 +1,3 @@
-#include "escaquer.h"
 #include "arbreIOcoord.h"
 
 //---- Comprova que la fixa es del teu equip
