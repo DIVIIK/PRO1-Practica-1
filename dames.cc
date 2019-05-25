@@ -166,58 +166,22 @@ void avalua(escaquer &e) {
 }
 
 
+
 //---- 
 
-/* PRE:  */
-/* POST: */
-void tornOrdinador(escaquer &e, int &tamany) {
-  avalua(e);
-  cout << "Es el torn de l'ordinador" << endl;
-  cout << "L'arbre construit es" << endl;
-
-  //// Generar arbre ////
-
-  arbre<coord> empty;
-  list<arbre<coord> > arbres;
-  list<arbre<coord> >::iterator it = arbres.begin();
-
-  // Obtenir coordenades
-  for (int x = 0; x < tamany; ++x)
-    for (int y = 0; y < tamany; ++y)
-      if (e(coord(x,y)).valor() == casella::NEGRA) {
-        arbre<coord> arb(coord(x,y),empty,empty);
-        arbres.insert(it,arb);
-      }
-
-  // Iterem cada peça (arbre)
-  it = arbres.begin();
-  while (it != arbres.end()) {
-    // Guardem nomes les captures
-    direccio dir;
-    dir.init();
-    while (not dir.is_stop()) {
-      arbre<coord> arb = *it;
-      arbre<coord> fe = arb.fe();
-      arbre<coord> fd = arb.fd();
-      bool esPot;
-      coord cini = arb.arrel();
-      coord cfin = cini + dir.despl() + dir.despl();
-      e.es_pot_capturar(cini, dir, esPot, cfin);
-      if (esPot) {
-        arbre<coord> fill(cfin, empty, empty);
-        if (dir.mostra() == "NORD-OEST" or dir.mostra() == "SUD-OEST") arbre<coord> arb(cini, fill, fd);
-        else if (dir.mostra() == "NORD-EST" or dir.mostra() == "SUD-EST") arbre<coord> arb(cini, fe, fill);
-        cout << "Fill: "; // ARREGLAR
-        cout << fill << endl << endl;        
-        *it = arb;
-      } 
-      ++dir;
-    }
-
-    cout << *it << endl << endl;
-    ++it;
+/* PRE: a = A  */
+/* POST: El resultat es el nombre de nodes de l'arbre A */
+int mida(arbre<coord> &a) {
+  int nnodes;
+  if (a.es_buit()) nnodes = 0;
+  else {
+    arbre<coord> a1 = a.fe();
+    arbre<coord> a2 = a.fd();
+    int y = mida(a1);
+    int z = mida(a2);
+    nnodes = y + z + 1;
   }
-
+  return nnodes;
 }
 
 
@@ -226,7 +190,100 @@ void tornOrdinador(escaquer &e, int &tamany) {
 
 /* PRE:  */
 /* POST: */
-bool tornJugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &haCapturat) {
+void neteja_visitades(escaquer &e, int &tamany) {
+  for (int x = 0; x < tamany; ++x)
+    for (int y = 0; y < tamany; ++y)
+      e(coord(x,y)).desmarca();
+}
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+void busca_Fills(escaquer &e, arbre<coord> &a) {
+  arbre<coord> empty;
+  direccio dir;
+  dir.init();
+  coord cini = a.arrel();
+  e(cini).marca();
+  while (not dir.is_stop()) {
+    coord cfin = cini + dir.despl() + dir.despl();
+    if (e.dins_limits(cfin)) {
+      bool esPot = false;
+      if (not e(cfin).es_visitada()) e.es_pot_capturar(cini, dir, esPot, cfin);
+      if (esPot) {
+        e(cfin).marca();
+        if (dir.mostra() == "NORD-OEST" or dir.mostra() == "SUD-OEST") {
+          arbre<coord> temp(cini, arbre<coord>(cfin, empty, empty), a.fd());
+          a = temp;
+        } else if (dir.mostra() == "NORD-EST" or dir.mostra() == "SUD-EST") {
+          arbre<coord> temp(cini, a.fe(), arbre<coord>(cfin, empty, empty));
+          a = temp;
+        }
+      }
+    }
+    ++dir;
+  }
+}
+
+
+
+void omple_Arbres(escaquer &e, arbre<coord> &a) {
+  if (not a.es_buit()) {
+    busca_Fills(e,a);
+    arbre<coord> fe = a.fe();
+    arbre<coord> fd = a.fd();
+    
+    omple_Arbres(e,fe);
+    omple_Arbres(e,fd);
+
+    arbre<coord> temp(a.arrel(), fe, fd);
+    a = temp;
+  }
+}
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+void torn_Ordinador(escaquer &e, int &tamany) {
+  avalua(e);
+  cout << "Es el torn de l'ordinador" << endl;
+  cout << "L'arbre construit es" << endl;
+
+  //// Generar arbre ////
+  arbre<coord> empty;
+  list<arbre<coord> > arbres;
+  list<arbre<coord> >::iterator it = arbres.begin();
+  // Obtenir coordenades
+  for (int x = 0; x < tamany; ++x)
+    for (int y = 0; y < tamany; ++y)
+      if (e(coord(x,y)).valor() == casella::NEGRA) {
+        arbre<coord> arb(coord(x,y),empty,empty);
+        arbres.insert(it,arb);
+        
+        omple_Arbres(e, arb);
+        //util::espera(0.05);
+        cout << arb << endl << endl;
+        ++it;
+      }
+
+  //list<arbre<coord> >::iterator it_max = it;
+      neteja_visitades(e,tamany);
+}
+  // if (mida(*it) > mida(*it_max)) it_max = it;
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+bool torn_Jugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &haCapturat) {
   e.mostra(torn_actual);
   cout << "================================" << endl << endl;
 
@@ -284,9 +341,9 @@ int main() {
     }
 
     // 4.1 Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
-    if (opcio == 2 and torn_actual == casella::NEGRA) tornOrdinador(e,tamany);
+    if (opcio == 2 and torn_actual == casella::NEGRA) torn_Ordinador(e,tamany);
     // 4.2 Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
-    else seguimJugant = tornJugador(e, torn_actual, aux, tamany, haCapturat);
+    else seguimJugant = torn_Jugador(e, torn_actual, aux, tamany, haCapturat);
 
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
     if (seguimJugant) {

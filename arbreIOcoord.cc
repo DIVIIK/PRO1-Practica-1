@@ -13,7 +13,7 @@ ostream& operator<<(ostream &os, const arbre<coord> &x)
   if (x.es_buit()) 
     os<<".";
   else {
-    os<< "["<<x.arrel().mostra1()<<"]\n"<<d1<<" \\__";
+    os<< x.arrel().mostra1()<<"\n"<<d1<<" \\__";
     dep = d1+" |  ";
     os<< x.fd();
     os<<"\n"<<d1<<" \\__";

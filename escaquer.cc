@@ -339,9 +339,6 @@ bool escaquer::posa_fitxa(coord c, coord cf, int color) {
 	      taula[c.x][c.y].omple(casella::LLIURE);
 	      taula[(c+dir.despl()).x][(c+dir.despl()).y].omple(casella::LLIURE);
 	      taula[cf.x][cf.y].omple(color);
-
-	      // Marca la casella com a visitada
-	      taula[cf.x][cf.y].marca();
 	      
 	      // Mira si es pot convertir a dama
 	      convertir_dama(taula, cf,color);
