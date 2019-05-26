@@ -171,14 +171,14 @@ void avalua(escaquer &e) {
 
 /* PRE: a = A  */
 /* POST: El resultat es el nombre de nodes de l'arbre A */
-int mida(arbre<coord> &a) {
+int altura(arbre<coord> &a) {
   int nnodes;
   if (a.es_buit()) nnodes = 0;
   else {
     arbre<coord> a1 = a.fe();
     arbre<coord> a2 = a.fd();
-    int y = mida(a1);
-    int z = mida(a2);
+    int y = altura(a1);
+    int z = altura(a2);
     nnodes = y + z + 1;
   }
   return nnodes;
@@ -215,13 +215,12 @@ void busca_Fills(escaquer &e, arbre<coord> &a) {
       if (not e(cfin).es_visitada()) e.es_pot_capturar(cini, dir, esPot, cfin);
       if (esPot) {
         e(cfin).marca();
-        if (dir.mostra() == "NORD-OEST" or dir.mostra() == "SUD-OEST") {
-          arbre<coord> temp(cini, arbre<coord>(cfin, empty, empty), a.fd());
-          a = temp;
-        } else if (dir.mostra() == "NORD-EST" or dir.mostra() == "SUD-EST") {
-          arbre<coord> temp(cini, a.fe(), arbre<coord>(cfin, empty, empty));
-          a = temp;
-        }
+        if (dir.mostra() == "SUD-OEST") a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
+        else if (dir.mostra() == "SUD-EST") a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
+
+        // Dames
+        else if (dir.mostra() == "NORD-OEST" and e(cini).valor() == casella::DAMA_NEGRA) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
+        else if (dir.mostra() == "NORD-EST"  and e(cini).valor() == casella::DAMA_NEGRA) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
       }
     }
     ++dir;
@@ -230,6 +229,9 @@ void busca_Fills(escaquer &e, arbre<coord> &a) {
 
 
 
+//---- 
+
+/* PRE:  */
 void omple_Arbres(escaquer &e, arbre<coord> &a) {
   if (not a.es_buit()) {
     busca_Fills(e,a);
@@ -239,8 +241,7 @@ void omple_Arbres(escaquer &e, arbre<coord> &a) {
     omple_Arbres(e,fe);
     omple_Arbres(e,fd);
 
-    arbre<coord> temp(a.arrel(), fe, fd);
-    a = temp;
+    a = arbre<coord> (a.arrel(), fe, fd);
   }
 }
 
@@ -249,7 +250,45 @@ void omple_Arbres(escaquer &e, arbre<coord> &a) {
 //---- 
 
 /* PRE:  */
-/* POST: */
+void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> &coords, arbre<coord> &a) {
+  bool moviment_valid;
+
+  // No puc capturar, faig moviment aleatori
+  if (arbres.empty()) {
+
+    // Buscar una fixa amb moviments per fer la tirada
+    int i = 0;
+    list<coord> moviments;
+    while (moviments.size() == 0 and i < coords.size()) {
+      moviments = e.mov_possibles(coords[i]);
+      i++;
+    }
+
+    if (not moviments.empty()) {
+      coord cini = coords[i-1];
+      cout << "No puedo capturar, moviendo: " << cini.mostra1() << endl;
+
+      //int v = rand() % moviments.size()-1;
+      coord cfin = *moviments.begin();
+      moviment_valid = e.posa_fitxa(cini, cfin, e(cini).valor());
+    }    
+
+  // Capturo
+  } else if (not a.es_buit()) {
+    arbre<coord> fe = a.fe();
+    arbre<coord> fd = a.fd();
+    if (altura(fe) > altura(fd))      moviment_valid = e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
+    else if (altura(fe) < altura(fd)) moviment_valid = e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
+    else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) moviment_valid = e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
+    else cout << "No se que fer xd" << endl;
+  }
+}
+
+
+
+//---- 
+
+/* PRE:  */
 void torn_Ordinador(escaquer &e, int &tamany) {
   avalua(e);
   cout << "Es el torn de l'ordinador" << endl;
@@ -257,25 +296,38 @@ void torn_Ordinador(escaquer &e, int &tamany) {
 
   //// Generar arbre ////
   arbre<coord> empty;
+  arbre<coord> arb;
+  arbre<coord> arb_Max;
   list<arbre<coord> > arbres;
   list<arbre<coord> >::iterator it = arbres.begin();
   // Obtenir coordenades
-  for (int x = 0; x < tamany; ++x)
-    for (int y = 0; y < tamany; ++y)
-      if (e(coord(x,y)).valor() == casella::NEGRA) {
-        arbre<coord> arb(coord(x,y),empty,empty);
-        arbres.insert(it,arb);
+  vector<coord> coords;
+  for (int x = 0; x < tamany; ++x) {
+    for (int y = 0; y < tamany; ++y) {
+      if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
+        coords.push_back(coord(x,y));
+        arb = arbre<coord>(coord(x,y),empty,empty);
+        omple_Arbres(e,arb);
+        if (altura(arb) > 1) arbres.insert(it,arb);
         
-        omple_Arbres(e, arb);
-        //util::espera(0.05);
-        cout << arb << endl << endl;
-        ++it;
+        // Dames
+        if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
+          arb = arbre<coord>(coord(x,y),empty,empty);
+          omple_Arbres(e,arb);
+          if (altura(arb) > 1) arbres.insert(it,arb);
+        }
+        if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
+        //if (altura(arb) > 1) cout << "DEBUG" << endl << arb << endl;
       }
+    }
+  }
 
-  //list<arbre<coord> >::iterator it_max = it;
-      neteja_visitades(e,tamany);
+  neteja_visitades(e,tamany);
+  util::espera(0.5);
+  cout << arb_Max << endl << endl;
+
+  moviment_Ordinador(e,arbres,coords,arb_Max);
 }
-  // if (mida(*it) > mida(*it_max)) it_max = it;
 
 
 
