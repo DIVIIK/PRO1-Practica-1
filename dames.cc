@@ -250,38 +250,89 @@ void omple_Arbres(escaquer &e, arbre<coord> &a) {
 //---- 
 
 /* PRE:  */
+void captura(escaquer &e, arbre<coord> &a) {
+    if (not a.es_buit()) {
+      arbre<coord> fe = a.fe();
+      arbre<coord> fd = a.fd();
+      if (altura(fe) > altura(fd)) {
+        e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
+        captura(e,fe);
+      } else if (altura(fe) < altura(fd)) {
+        e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
+        captura(e,fd);
+      } else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) {
+        int aleatori = rand() % 1;
+        if (aleatori == 1) {
+          e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
+          captura(e,fe);
+        }
+        else {
+          e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
+          captura(e,fd);
+        }
+      } else cout << "Tenemos problemas" << endl;
+    }
+}
+
+
+
+//---- 
+
+/* PRE:  */
 void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> &coords, arbre<coord> &a) {
-  bool moviment_valid;
+
 
   // No puc capturar, faig moviment aleatori
   if (arbres.empty()) {
 
     // Buscar una fixa amb moviments per fer la tirada
-    int i = 0;
-    list<coord> moviments;
-    while (moviments.size() == 0 and i < coords.size()) {
-      moviments = e.mov_possibles(coords[i]);
-      i++;
-    }
+    vector<coord> cinis;
+    vector<list<coord> > v_moviments;
+    for (int i = 0; i < coords.size(); ++i) {
+      list<coord> temp = e.mov_possibles(coords[i]);
+      if (not temp.empty()) {
+        v_moviments.push_back(temp);
+        cinis.push_back(coords[i]);
+      }
+    } 
 
-    if (not moviments.empty()) {
-      coord cini = coords[i-1];
-      cout << "No puedo capturar, moviendo: " << cini.mostra1() << endl;
+    if (not v_moviments.empty()) {
+      // Coordenada inicial aleatoria
+      int aleatori = rand() % v_moviments.size()-1;
+      list<coord> moviments = v_moviments[aleatori];
+      coord cini = cinis[aleatori];
 
-      //int v = rand() % moviments.size()-1;
-      coord cfin = *moviments.begin();
-      moviment_valid = e.posa_fitxa(cini, cfin, e(cini).valor());
+      // Coordenada final aleatoria
+      aleatori = rand() % moviments.size();
+      list<coord>::iterator it = moviments.begin();
+      for (int i = 0; i < aleatori; ++i) ++it;
+
+      coord cfin = *it;
+      e.posa_fitxa(cini, cfin, e(cini).valor());
     }    
 
   // Capturo
-  } else if (not a.es_buit()) {
-    arbre<coord> fe = a.fe();
-    arbre<coord> fd = a.fd();
-    if (altura(fe) > altura(fd))      moviment_valid = e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
-    else if (altura(fe) < altura(fd)) moviment_valid = e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
-    else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) moviment_valid = e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
-    else cout << "No se que fer xd" << endl;
+  } else if (not a.es_buit()) captura(e,a);
+}
+
+
+//---- 
+
+/* PRE:  */
+/* POST:  */
+bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
+  bool res = false; 
+
+  if (not a.es_buit()) {
+    if (e(a.arrel()).valor() == casella::DAMA_NEGRA) res = true;
+    else {
+      arbre<coord> a1 = a.fe();
+      arbre<coord> a2 = a.fd();
+      if (cami_amb_Dama(e,a1)) res = true;
+      if (cami_amb_Dama(e,a2)) res = true;
+    }
   }
+  return res;
 }
 
 
@@ -316,17 +367,26 @@ void torn_Ordinador(escaquer &e, int &tamany) {
           omple_Arbres(e,arb);
           if (altura(arb) > 1) arbres.insert(it,arb);
         }
+
+        // Seleccionem l'arbre definitiu
         if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
+        else if (altura(arb) == altura(arb)) {
+          // Si arb_Max te una dama no es fara res i seguira sent el cami de maxima prioritat,
+          // si arb te o no una dama entrará al if.
+          if (not cami_amb_Dama(e,arb_Max)) arb_Max = arb;
+        }
         //if (altura(arb) > 1) cout << "DEBUG" << endl << arb << endl;
       }
     }
   }
 
   neteja_visitades(e,tamany);
-  util::espera(0.5);
+  util::espera(0.8);
   cout << arb_Max << endl << endl;
 
   moviment_Ordinador(e,arbres,coords,arb_Max);
+  util::espera(1.2);
+  util::neteja();
 }
 
 
