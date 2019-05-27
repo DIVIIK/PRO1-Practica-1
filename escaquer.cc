@@ -153,10 +153,14 @@ void escaquer::mostra() const {
 /* PRE: color indica l'equip del cual mostrem els possibles moviments, -3 < color < 4 */
 // Fem una pasada per guardar les coordenades de dames amb el color especificat.
 void escaquer::mostra(int color) const {
+  int color_Dama;
+  if (color == casella::BLANCA) color_Dama = casella::DAMA_BLANCA; 
+  else if (color == casella::NEGRA) color_Dama = casella::DAMA_NEGRA; 
+
   vector<coord> coords;
   for (int x = 0; x < taula.size(); ++x)
     for (int y = 0; y < taula.size(); ++y)
-      if (taula[x][y].valor() == color )
+      if (taula[x][y].valor() == color or taula[x][y].valor() == color_Dama )
         coords.push_back(coord(x,y));
   
   std::vector<std::vector<casella> > taula_temp = taula;
@@ -164,7 +168,7 @@ void escaquer::mostra(int color) const {
   // Obtenir les caselles amb possible moviment
   for (int i = 0; i < coords.size(); ++i) {
     list<coord> coords_possible = mov_possibles(coords[i]);
-    while (not coords_possible.empty()) {
+    while (not coords_possible.empty()) { // es podria fer fins a end() amb iterador
       coord c = *coords_possible.begin();
       coords_possible.erase(coords_possible.begin());
       taula_temp[c.x][c.y].omple(3); // Asigna l'interrogant

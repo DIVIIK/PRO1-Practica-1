@@ -2,15 +2,14 @@
 
 //---- Comprova que la fixa es del teu equip
 
-/* PRE: color es l'equip en el torn actual */
+/* PRE: turnActual es l'equip en el torn actual */
 /* POST: Retorna cert si es pot realitzar el moviment, d'altra forma retorna fals */
-bool comprova_equip(escaquer &e, int &color, coord &c) {
+bool comprova_equip(escaquer &e, int &turnActual, coord &c) {
   bool res = true;
-  int turnActual = color;
   int valorFixa = e(c).valor();
 
-  if (valorFixa == casella::DAMA_BLANCA) turnActual = casella::BLANCA;
-  else if (valorFixa == casella::DAMA_NEGRA) turnActual = casella::NEGRA;
+  if (valorFixa == casella::DAMA_BLANCA) valorFixa = casella::BLANCA;
+  else if (valorFixa == casella::DAMA_NEGRA) valorFixa = casella::NEGRA;
 
   if (valorFixa == turnActual) res = true;
   else res = false;
@@ -125,7 +124,7 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 
       // Comprobar si esta movent una fixa del seu equip
       if (seguimJugant) moviment_valid = comprova_equip(e, color, cini);
-
+      
       if (seguimJugant and moviment_valid) {
         // Descobrir la direccio
         bool trobat = false;
@@ -140,7 +139,7 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
           if (espot) haCapturat = true;
           else haCapturat = false;
 
-          moviment_valid = e.posa_fitxa(cini,cfin,color);
+          moviment_valid = e.posa_fitxa(cini,cfin,e(cini).valor());
 
           util::neteja();
         } else moviment_valid = false;
@@ -251,26 +250,35 @@ void omple_Arbres(escaquer &e, arbre<coord> &a) {
 
 /* PRE:  */
 void captura(escaquer &e, arbre<coord> &a) {
+    // Si l'arbre no es buit podrem capturar
     if (not a.es_buit()) {
       arbre<coord> fe = a.fe();
       arbre<coord> fd = a.fd();
+
+      // L'arbre esquerre té mes captures
       if (altura(fe) > altura(fd)) {
         e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
         captura(e,fe);
+
+      // L'arbre dret té mes captures
       } else if (altura(fe) < altura(fd)) {
         e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
         captura(e,fd);
+
+      // Els dos arbres tenen la mateixa altura, agafem un dels dos de forma aleatoria
       } else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) {
         int aleatori = rand() % 1;
+
         if (aleatori == 1) {
           e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
           captura(e,fe);
-        }
-        else {
+        } else {
           e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
           captura(e,fd);
         }
-      } else cout << "Tenemos problemas" << endl;
+
+      // No hi han mes fills 
+      } // else 
     }
 }
 
@@ -298,7 +306,7 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
 
     if (not v_moviments.empty()) {
       // Coordenada inicial aleatoria
-      int aleatori = rand() % v_moviments.size()-1;
+      int aleatori = rand() % (v_moviments.size()-1);
       list<coord> moviments = v_moviments[aleatori];
       coord cini = cinis[aleatori];
 
@@ -309,10 +317,14 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
 
       coord cfin = *it;
       e.posa_fitxa(cini, cfin, e(cini).valor());
+      cout << "Movimiento de " << cini.mostra1() << " a " << cfin.mostra1() << endl;
     }    
 
   // Capturo
-  } else if (not a.es_buit()) captura(e,a);
+  } else if (not a.es_buit()) {
+    cout << "L'arbre construit es" << endl << a << endl  << " i té alçada " << altura(a) << endl;
+    captura(e,a);
+  }
 }
 
 
@@ -324,7 +336,7 @@ bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
   bool res = false; 
 
   if (not a.es_buit()) {
-    if (e(a.arrel()).valor() == casella::DAMA_NEGRA) res = true;
+    if (e(a.arrel()).valor() == casella::DAMA_BLANCA) res = true;
     else {
       arbre<coord> a1 = a.fe();
       arbre<coord> a2 = a.fd();
@@ -343,7 +355,6 @@ bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
 void torn_Ordinador(escaquer &e, int &tamany) {
   avalua(e);
   cout << "Es el torn de l'ordinador" << endl;
-  cout << "L'arbre construit es" << endl;
 
   //// Generar arbre ////
   arbre<coord> empty;
@@ -370,22 +381,21 @@ void torn_Ordinador(escaquer &e, int &tamany) {
 
         // Seleccionem l'arbre definitiu
         if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
-        else if (altura(arb) == altura(arb)) {
-          // Si arb_Max te una dama no es fara res i seguira sent el cami de maxima prioritat,
-          // si arb te o no una dama entrará al if.
-          if (not cami_amb_Dama(e,arb_Max)) arb_Max = arb;
+        else if (altura(arb) == altura(arb_Max)) {
+          
+          // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
+          if (cami_amb_Dama(e,arb)) arb_Max = arb;
+
         }
         //if (altura(arb) > 1) cout << "DEBUG" << endl << arb << endl;
       }
     }
   }
 
-  neteja_visitades(e,tamany);
-  util::espera(0.8);
-  cout << arb_Max << endl << endl;
-
+  util::espera(0.6);
   moviment_Ordinador(e,arbres,coords,arb_Max);
-  util::espera(1.2);
+  neteja_visitades(e,tamany);
+  util::espera(1.7);
   util::neteja();
 }
 
