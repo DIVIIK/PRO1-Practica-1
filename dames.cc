@@ -24,13 +24,6 @@ bool comprova_equip(escaquer &e, int &turnActual, coord &c) {
 /* POST: */
 escaquer començar_partida(int &tamany, int &opcio) {
   util::neteja();
-  cout << " d8888b.  .d8b.  .88b  d88. d88888b .d8888." << endl;
-  cout << "88  `8D d8' `8b 88'YbdP`88 88'     88'  YP " << endl;
-  cout << "88   88 88ooo88 88  88  88 88ooooo `8bo.   " << endl;   
-  cout << "88   88 88~~~88 88  88  88 88~~~~~   `Y8b. " << endl;
-  cout << "88  .8D 88   88 88  88  88 88.     db   8D " << endl;
-  cout << "Y8888D' YP   YP YP  YP  YP Y88888P `8888Y' " << endl;
-
   cout << endl << "La Dimensió de l'escaquer ha de ser múltiple de 2 i 8 com a minim" << endl;
   cout << "Quina és la Dimensió ? : " ;
   cin >> tamany;
@@ -201,25 +194,46 @@ void neteja_visitades(escaquer &e, int &tamany) {
 
 /* PRE:  */
 /* POST: */
-void busca_Fills(escaquer &e, arbre<coord> &a) {
+bool hem_acabat(escaquer &e, int &tamany) {
+  bool res = false;
+  int b = 0;
+  int n = 0;
+  for (int x = 0; x < tamany; ++x)
+    for (int y = 0; y < tamany; ++y)
+      if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) ++n;
+      else if (e(coord(x,y)).valor() == casella::BLANCA or e(coord(x,y)).valor() == casella::DAMA_BLANCA) ++b;
+  if (n == 0 or b == 0 ) res = true;
+  return res;
+}
+
+
+
+//---- 
+
+/* PRE:  */
+/* POST: */
+void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
+  vector<coord> cfins;
   arbre<coord> empty;
-  direccio dir;
-  dir.init();
+  coord cfin;
   coord cini = a.arrel();
   e(cini).marca();
+  direccio dir;
+  dir.init();
+
   while (not dir.is_stop()) {
-    coord cfin = cini + dir.despl() + dir.despl();
+    cfin = cini + dir.despl() + dir.despl();
+    cfins.push_back(cfin);
     if (e.dins_limits(cfin)) {
       bool esPot = false;
       if (not e(cfin).es_visitada()) e.es_pot_capturar(cini, dir, esPot, cfin);
       if (esPot) {
         e(cfin).marca();
-        if (dir.mostra() == "SUD-OEST") a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
-        else if (dir.mostra() == "SUD-EST") a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
-
+        if (dir.mostra() == "SUD-OEST" and not dama) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
+        else if (dir.mostra() == "SUD-EST" and not dama) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
         // Dames
-        else if (dir.mostra() == "NORD-OEST" and e(cini).valor() == casella::DAMA_NEGRA) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
-        else if (dir.mostra() == "NORD-EST"  and e(cini).valor() == casella::DAMA_NEGRA) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
+        else if (dir.mostra() == "NORD-OEST" and dama) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
+        else if (dir.mostra() == "NORD-EST"  and dama) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
       }
     }
     ++dir;
@@ -231,14 +245,14 @@ void busca_Fills(escaquer &e, arbre<coord> &a) {
 //---- 
 
 /* PRE:  */
-void omple_Arbres(escaquer &e, arbre<coord> &a) {
+void omple_Arbres(escaquer &e, arbre<coord> &a, bool dama) {
   if (not a.es_buit()) {
-    busca_Fills(e,a);
+    busca_Fills(e,a,dama);
     arbre<coord> fe = a.fe();
     arbre<coord> fd = a.fd();
     
-    omple_Arbres(e,fe);
-    omple_Arbres(e,fd);
+    omple_Arbres(e,fe,dama);
+    omple_Arbres(e,fd,dama);
 
     a = arbre<coord> (a.arrel(), fe, fd);
   }
@@ -254,7 +268,6 @@ void captura(escaquer &e, arbre<coord> &a) {
     if (not a.es_buit()) {
       arbre<coord> fe = a.fe();
       arbre<coord> fd = a.fd();
-
       // L'arbre esquerre té mes captures
       if (altura(fe) > altura(fd)) {
         e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
@@ -288,11 +301,8 @@ void captura(escaquer &e, arbre<coord> &a) {
 
 /* PRE:  */
 void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> &coords, arbre<coord> &a) {
-
-
   // No puc capturar, faig moviment aleatori
   if (arbres.empty()) {
-
     // Buscar una fixa amb moviments per fer la tirada
     vector<coord> cinis;
     vector<list<coord> > v_moviments;
@@ -305,8 +315,12 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
     } 
 
     if (not v_moviments.empty()) {
+      
       // Coordenada inicial aleatoria
-      int aleatori = rand() % (v_moviments.size()-1);
+      int aleatori;
+      if (v_moviments.size() == 1) aleatori = 0; 
+      else aleatori = rand() % (v_moviments.size()-1);
+
       list<coord> moviments = v_moviments[aleatori];
       coord cini = cinis[aleatori];
 
@@ -324,7 +338,7 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
   } else if (not a.es_buit()) {
     cout << "L'arbre construit es" << endl << a << endl  << " i té alçada " << altura(a) << endl;
     captura(e,a);
-  }
+  } else cout << "Ni capturo ni muevo" << endl;
 }
 
 
@@ -334,12 +348,30 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
 /* POST:  */
 bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
   bool res = false; 
-
   if (not a.es_buit()) {
-    if (e(a.arrel()).valor() == casella::DAMA_BLANCA) res = true;
+    arbre<coord> a1 = a.fe();
+    arbre<coord> a2 = a.fd();
+
+    // Mirar valor fixa a capturar
+    direccio dir;
+    dir.init();
+    coord cini = a.arrel();
+    coord cfin;
+    int valorFixa;
+    bool trobat = false;
+
+    while (not dir.is_stop() and not trobat) {
+      cfin = cini + dir.despl() + dir.despl();  
+
+      if (not a1.es_buit()) if (cfin == a1.arrel()) trobat = true;
+      if (not trobat and not a2.es_buit()) if (cfin == a2.arrel()) trobat = true;
+
+      if (trobat) valorFixa = e(cini + dir.despl()).valor();
+      ++dir;
+    }
+  
+    if (valorFixa == casella::DAMA_BLANCA) res = true;
     else {
-      arbre<coord> a1 = a.fe();
-      arbre<coord> a2 = a.fd();
       if (cami_amb_Dama(e,a1)) res = true;
       if (cami_amb_Dama(e,a2)) res = true;
     }
@@ -352,13 +384,14 @@ bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
 //---- 
 
 /* PRE:  */
-void torn_Ordinador(escaquer &e, int &tamany) {
+void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
   avalua(e);
   cout << "Es el torn de l'ordinador" << endl;
 
   //// Generar arbre ////
   arbre<coord> empty;
   arbre<coord> arb;
+  arbre<coord> arb2;
   arbre<coord> arb_Max;
   list<arbre<coord> > arbres;
   list<arbre<coord> >::iterator it = arbres.begin();
@@ -369,33 +402,59 @@ void torn_Ordinador(escaquer &e, int &tamany) {
       if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
         coords.push_back(coord(x,y));
         arb = arbre<coord>(coord(x,y),empty,empty);
-        omple_Arbres(e,arb);
-        if (altura(arb) > 1) arbres.insert(it,arb);
         
-        // Dames
+        // Obtenim els moviments de la fixa
+        omple_Arbres(e,arb,false);
+        
+        // Analitzem els moviments que pot fer la fixa, nomes guardem les captures!
+        if (altura(arb) > 1) {
+          arbres.insert(it,arb);
+          haCapturat = true;
+        }
+
+        neteja_visitades(e,tamany);
+
+        //cout << "DEBUG: Tots els arbres" << endl << arb << endl;
+        // Hem de tindre em compte que les dames tindran dos arbres un a nord i un altre a sud
         if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
-          arb = arbre<coord>(coord(x,y),empty,empty);
-          omple_Arbres(e,arb);
-          if (altura(arb) > 1) arbres.insert(it,arb);
+          arb2 = arbre<coord>(coord(x,y),empty,empty);
+            omple_Arbres(e,arb2,true);
+          if (altura(arb2) > 1) {
+            arbres.insert(it,arb2);
+            haCapturat = true;
+          }
         }
 
         // Seleccionem l'arbre definitiu
         if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
         else if (altura(arb) == altura(arb_Max)) {
-          
           // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
           if (cami_amb_Dama(e,arb)) arb_Max = arb;
-
         }
-        //if (altura(arb) > 1) cout << "DEBUG" << endl << arb << endl;
+
+        // Si tenim una dama hem de jugar amb els dos arbres
+        if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
+          //cout << "Arb2: " << endl << arb2 << endl;
+          //cout << "Arb1 " << endl << arb << endl;
+
+          if (altura(arb2) > 1 and altura(arb2) > altura(arb_Max)) {
+            arb_Max = arb2;
+            //cout << "problemas" << endl;
+          } else if (altura(arb2) == altura(arb_Max)) {
+            // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
+            if (cami_amb_Dama(e,arb2)) arb_Max = arb2;
+          }
+          
+        }
+        //if (altura(arb) > 1) cout << "DEBUG: Tots els arbres amb captura" << endl << arb << endl;
       }
     }
   }
 
-  util::espera(0.6);
+  //util::espera(0.6);
   moviment_Ordinador(e,arbres,coords,arb_Max);
   neteja_visitades(e,tamany);
-  util::espera(1.7);
+  //util::espera(1.7);
   util::neteja();
 }
 
@@ -457,22 +516,30 @@ int main() {
   bool seguimJugant = true;
   bool aux = false;
   while (seguimJugant) {
-    if (not e.pot_jugar(torn_actual)) {
+    haCapturat = false;
+
+    // Mirem si l'equip pot tirar alguna fixa
+    int temp;
+    if (torn_actual == casella::NEGRA) temp = casella::DAMA_NEGRA;
+    else if (torn_actual == casella::BLANCA) temp = casella::DAMA_BLANCA;
+
+    if (not e.pot_jugar(torn_actual) and not e.pot_jugar(temp)) {
       cout << "El jugador no pot jugar ninguna peça.";
       passa_torn(e, torn_actual, opcio);
     }
 
     // 4.1 Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
-    if (opcio == 2 and torn_actual == casella::NEGRA) torn_Ordinador(e,tamany);
+    if (opcio == 2 and torn_actual == casella::NEGRA) torn_Ordinador(e,tamany,haCapturat);
     // 4.2 Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
-    else seguimJugant = torn_Jugador(e, torn_actual, aux, tamany, haCapturat);
+    else seguimJugant = torn_Jugador(e,torn_actual,aux,tamany,haCapturat);
 
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
     if (seguimJugant) {
       if (not haCapturat) passa_torn(e, torn_actual, opcio);
-      else mostra(torn_actual);
+      else if (opcio == 1 ) mostra(torn_actual);
     }
 
+    if (hem_acabat(e,tamany)) seguimJugant = false;
   }  // 10. Repetir el procediment desde 3 fins acabar la partida o algun dels dos jugadors vulgui aturar
 
   // 11. Tant si s'acaba la partida com si s'ha aturat sense finalitzar-la, es mostra per pantalla l'escaquer 
