@@ -2,8 +2,10 @@
 
 //---- Comprova que la fixa es del teu equip
 
-/* PRE: turnActual es l'equip en el torn actual */
-/* POST: Retorna cert si es pot realitzar el moviment, d'altra forma retorna fals */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      turnActual: turnActual = T. Es el numero asignat a l'equip en el torn actual */
+/*      c: coordenada del tauler que indica la fixa en la posicio especifica en el tauler */
+/* POST: Retorna cert si la fixa a les coordenades C es de l'equip indicat amb T, d'altra forma retorna fals */
 bool comprova_equip(escaquer &e, int &turnActual, coord &c) {
   bool res = true;
   int valorFixa = e(c).valor();
@@ -18,12 +20,13 @@ bool comprova_equip(escaquer &e, int &turnActual, coord &c) {
 
 
 
-//---- Inicialitzar l'escaquer de mida n·n
+//---- Inicialitzar l'escaquer de mida N·N i seleccionem el mode de partida (basic o especial)
 
-/* PRE:  */
-/* POST: */
+/* PRE: tamany: tamany = N. Indica cuantes fixes te cada fila/columna del tauler   */
+/*      opcio: Pot ser 1 o 2 i indica si es juga en mode jugador contra jugador o contra ordinador */
+/* POST: Crea un objecte tipus escaquer inicialitzat amb tamany N */
 escaquer començar_partida(int &tamany, int &opcio) {
-  util::neteja();
+  //util::neteja();
   cout << endl << "La Dimensió de l'escaquer ha de ser múltiple de 2 i 8 com a minim" << endl;
   cout << "Quina és la Dimensió ? : " ;
   cin >> tamany;
@@ -33,15 +36,17 @@ escaquer començar_partida(int &tamany, int &opcio) {
   cout << "Quina opció vols ? : ";
   cin >> opcio;
 
-  util::neteja();
+  //util::neteja();
   return e;
 }
 
 
 
-//---- Inicialitzar el torn a les peçes indicades
+//---- Inicialitzar el torn a les peçes indicades i ho indica pel canal de sortida
 
-/* PRE:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      color: color = C. Un nombre que pot ser 1 o -1 indicant quin jugador esta fent el torn */
+/*      opcio: Pot ser 1 o 2 i indica si es juga en mode jugador contra jugador o contra ordinador */
 /* POST: */
 void passa_torn(escaquer &e, int &color, int &opcio) {
   if (color==casella::BLANCA) {
@@ -58,21 +63,21 @@ void passa_torn(escaquer &e, int &color, int &opcio) {
 
 
 
-//---- 
+//---- Mostra pel canal de sortida l'equip que indica amb C
 
-/* PRE:  */
-/* POST: */
-void mostra(int &color) {
+/* PRE: color: color = C. Un nombre que pot ser 1 o -1 indicant quin jugador esta fent el torn */
+void mostra(int color) {
   if (color==casella::BLANCA) cout << endl<<"========== Jugador B ==========";
   else if (color==casella::NEGRA) cout << endl<<"========== Jugador N =========="; 
 }
 
 
 
-//---- 
+//---- L'usuari introdueix les coordenades de fila i columna de la fixa a moure
 
-/* PRE:  */
-/* POST: */
+/* PRE: tamany: Indica cuantes fixes te cada fila/columna del tauler   */
+/*      c: coordenada del tauler que introdueix el jugador */
+/* POST: Retorna cert si les dades introduidex son valides i volem seguir amb la partida, retorna fals d'altra forma */
 bool demana_coordenades(int &tamany, coord &c) {
   int fila, columna;
   bool seguimJugant = true;
@@ -96,22 +101,25 @@ bool demana_coordenades(int &tamany, coord &c) {
 
 
 
-//---- 
+//---- Evalua i executa els moviments que introdueix el jugador
 
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
+/*      color: Un nombre que pot ser 1 o -1 indicant quin jugador esta fent el torn  */
+/*      haCapturat: Un boolea referenciat que el fem servir per evaluar si s'ha realitzat una captura */
+/* POST: Retorna cert si el moviment es valid i volem seguir amb la partida, retorna fals d'altra forma */
 bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
   bool seguimJugant = true;
   bool moviment_valid = false;
 
   while (not moviment_valid and seguimJugant) {
 
-    cout << "---- Casella origen ----" << endl;
+    cout << "Casella Origen" << endl;
     coord cini;
     seguimJugant = demana_coordenades(tamany,cini);
 
     if (seguimJugant) {
-      cout << endl << "---- Casella final ----" << endl;
+      cout << "Casella Final" << endl;
       coord cfin;
       seguimJugant = demana_coordenades(tamany,cfin);
 
@@ -134,7 +142,7 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 
           moviment_valid = e.posa_fitxa(cini,cfin,e(cini).valor());
 
-          util::neteja();
+          //util::neteja();
         } else moviment_valid = false;
       }
       
@@ -146,10 +154,9 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 }
 
 
-//---- 
+//---- Indica quin equip va guanyant
 
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 void avalua(escaquer &e) {
   int val = e.avalua();
   if (val > 0) cout<<"Guanyen les blanques."<<endl;
@@ -159,29 +166,10 @@ void avalua(escaquer &e) {
 
 
 
-//---- 
+//---- Desmarca totes les fixes del tauler per no interferir en les seguents iteracions
 
-/* PRE: a = A  */
-/* POST: El resultat es el nombre de nodes de l'arbre A */
-int altura(arbre<coord> &a) {
-  int nnodes;
-  if (a.es_buit()) nnodes = 0;
-  else {
-    arbre<coord> a1 = a.fe();
-    arbre<coord> a2 = a.fd();
-    int y = altura(a1);
-    int z = altura(a2);
-    nnodes = y + z + 1;
-  }
-  return nnodes;
-}
-
-
-
-//---- 
-
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
 void neteja_visitades(escaquer &e, int &tamany) {
   for (int x = 0; x < tamany; ++x)
     for (int y = 0; y < tamany; ++y)
@@ -190,10 +178,11 @@ void neteja_visitades(escaquer &e, int &tamany) {
 
 
 
-//---- 
+//---- Mira si queden fixes de un dels dos equips per saber si ha acabat la partida
 
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
+/* POST: El resultat de la funció sera cert si no queden mes fixes de un dels dos equips, d'altra forma sera fals  */
 bool hem_acabat(escaquer &e, int &tamany) {
   bool res = false;
   int b = 0;
@@ -208,10 +197,11 @@ bool hem_acabat(escaquer &e, int &tamany) {
 
 
 
-//---- 
+//---- Donat un arbre amb unes coordenades inicials, omple els seus dos fills, que son les captures possibles
 
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      a: a = A. Serà buit si no pot capturar ninguna fixa, sino serà l'arbre amb la millor captura possible */
+/*      dama: cert si l'arrel de A son les coordenades que indican la posicio d'una dama al tauler, fals d'altra forma */
 void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
   vector<coord> cfins;
   arbre<coord> empty;
@@ -221,6 +211,7 @@ void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
   direccio dir;
   dir.init();
 
+  // Busquem la direccio
   while (not dir.is_stop()) {
     cfin = cini + dir.despl() + dir.despl();
     cfins.push_back(cfin);
@@ -229,9 +220,13 @@ void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
       if (not e(cfin).es_visitada()) e.es_pot_capturar(cini, dir, esPot, cfin);
       if (esPot) {
         e(cfin).marca();
+
+        // 5 - Si es pot capturar direccio OEST es creara un node fill esquerre amb les coordenades finals despres de la captura
         if (dir.mostra() == "SUD-OEST" and not dama) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
+        // 5 - Si es pot capturar direccio EST es creara un node fill esquerre amb les coordenades finals despres de la captura
         else if (dir.mostra() == "SUD-EST" and not dama) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
-        // Dames
+        
+        // Si es Dama
         else if (dir.mostra() == "NORD-OEST" and dama) a = arbre<coord> (cini, a.fe(), arbre<coord>(cfin, empty, empty));
         else if (dir.mostra() == "NORD-EST"  and dama) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
       }
@@ -242,27 +237,34 @@ void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
 
 
 
-//---- 
+//---- Donat un arbre amb unes coordenades inicials, l'omple fins al final amb les possibles captures
 
-/* PRE:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      a: a = A. Arbre binari del cual es buscaran els seus fills esquerre i dret */
+/*      dama: cert si l'arrel de A son les coordenades que indican la posicio d'una dama al tauler, fals d'altra forma */
 void omple_Arbres(escaquer &e, arbre<coord> &a, bool dama) {
+  // 5 - El proces es repeteix amb el fill esquerre i fill dret fins que no es piguin capturar mes peces
   if (not a.es_buit()) {
     busca_Fills(e,a,dama);
     arbre<coord> fe = a.fe();
     arbre<coord> fd = a.fd();
     
     omple_Arbres(e,fe,dama);
+    // HIP: fe es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
     omple_Arbres(e,fd,dama);
+    // HIP: fd es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
 
+    // Creem l'arbre definitiu amb els fills dels arbres esquerre i dret
     a = arbre<coord> (a.arrel(), fe, fd);
   }
 }
 
 
 
-//---- 
+//---- Executa l'operació de captura durant el turn de l'ordinador
 
-/* PRE:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      a: a = A. Serà buit si no pot capturar ninguna fixa, sino serà l'arbre amb la millor captura possible */
 void captura(escaquer &e, arbre<coord> &a) {
     // Si l'arbre no es buit podrem capturar
     if (not a.es_buit()) {
@@ -285,9 +287,11 @@ void captura(escaquer &e, arbre<coord> &a) {
         if (aleatori == 1) {
           e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
           captura(e,fe);
+          // HIP: fe es l'arbre fill de l'arbre inicial
         } else {
           e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
           captura(e,fd);
+          // HIP: fd es l'arbre fill de l'arbre inicial
         }
 
       // No hi han mes fills 
@@ -297,11 +301,15 @@ void captura(escaquer &e, arbre<coord> &a) {
 
 
 
-//---- 
+//---- Mira si l'ordinador pot fer captura o ha de fer un moviment de fixa estandard i ho executa
 
-/* PRE:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      arbres: Llista d'arbres amb les possibles captures de cada fixa de l'equip de l'ordinador que té al tauler */
+/*      coords: vector de coordenades de les fixes del torn de l'ordinador */
+/*      a: a = A. Serà buit si no pot capturar ninguna fixa, sino serà l'arbre amb la millor captura possible */
 void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> &coords, arbre<coord> &a) {
-  // No puc capturar, faig moviment aleatori
+  // 8. (especial) En cas que la llista d'arbres sigui buida (Vol dir que cap de les peces pot capturar) el programa escollira
+  // aleatoriament un desplaçament de peça si es possible.
   if (arbres.empty()) {
     // Buscar una fixa amb moviments per fer la tirada
     vector<coord> cinis;
@@ -319,7 +327,7 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
       // Coordenada inicial aleatoria
       int aleatori;
       if (v_moviments.size() == 1) aleatori = 0; 
-      else aleatori = rand() % (v_moviments.size()-1);
+      else aleatori = rand() % (v_moviments.size());
 
       list<coord> moviments = v_moviments[aleatori];
       coord cini = cinis[aleatori];
@@ -336,16 +344,17 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
 
   // Capturo
   } else if (not a.es_buit()) {
-    cout << "L'arbre construit es" << endl << a << endl  << " i té alçada " << altura(a) << endl;
+    cout << "L'arbre construit es" << endl << a << endl  << " i té alçada " << altura(a)-1 << endl;
     captura(e,a);
   } else cout << "Ni capturo ni muevo" << endl;
 }
 
 
-//---- 
+//---- Ens indica si l'arbre referenciat conté alguna dama a un dels seus nodes
 
-/* PRE:  */
-/* POST:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      a: a = A  */
+/* POST: cert si hi ha una dama a A, fals d'altra forma */
 bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
   bool res = false; 
   if (not a.es_buit()) {
@@ -381,10 +390,16 @@ bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
 
 
 
-//---- 
+//---- Gestiona el torn de l'ordinador cuan juguem en mode especial.
 
-/* PRE:  */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
+/*      haCapturat: cert. Un boolea referenciat que el fem servir per evaluar si s'ha realitzat una captura */
 void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
+  mostra(-1);
+  e.mostra(-1);
+  cout << "================================" << endl << endl;
+
   avalua(e);
   cout << "Es el torn de l'ordinador" << endl;
 
@@ -401,8 +416,13 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
     for (int y = 0; y < tamany; ++y) {
       if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
         coords.push_back(coord(x,y));
-        arb = arbre<coord>(coord(x,y),empty,empty);
         
+        // 5.(especial) Els passos a seguir en la construccio de l'arbre donada una peça normal que pot capturar
+        // son els seguents
+
+        // - L'arrel de l'arbre contindra les coordenades de la peça que es pot moure
+        arb = arbre<coord>(coord(x,y),empty,empty);
+
         // Obtenim els moviments de la fixa
         omple_Arbres(e,arb,false);
         
@@ -412,20 +432,25 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
           haCapturat = true;
         }
 
-        neteja_visitades(e,tamany);
-
-        //cout << "DEBUG: Tots els arbres" << endl << arb << endl;
-        // Hem de tindre em compte que les dames tindran dos arbres un a nord i un altre a sud
+        // 6.(especial) Si la peça es una Dama i pot capturar donat que es pot moure en les 4 direccions
+        // es crearan dos arbres
         if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
+          neteja_visitades(e,tamany);
           arb2 = arbre<coord>(coord(x,y),empty,empty);
             omple_Arbres(e,arb2,true);
           if (altura(arb2) > 1) {
             arbres.insert(it,arb2);
             haCapturat = true;
           }
+          // cout << "DEBUG:" << arb2 << endl;
         }
 
-        // Seleccionem l'arbre definitiu
+        //cout << "DEBUG: Tots els arbres" << endl << arb << endl;
+
+        // 7.(especial) De la llista d'arbres resultant del pas anterior, el programa ha d'escollir moure
+        // la peça corresponent a l'arbre amb l'alçada maxima. En cas d'empat s'escollira el cami 
+        // que capturi alguna Dama. Si hi ha mes d'un cami amb aquesta situacio el programa escullira
+        // un cami a l'atzar.
         if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
         else if (altura(arb) == altura(arb_Max)) {
           // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
@@ -455,15 +480,19 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
   moviment_Ordinador(e,arbres,coords,arb_Max);
   neteja_visitades(e,tamany);
   //util::espera(1.7);
-  util::neteja();
+  //util::neteja();
 }
 
 
 
-//---- 
+//---- Gestiona el torn dels jugadors de forma que puguin introduir moviments
 
-/* PRE:  */
-/* POST: */
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      torn actual: Un nombre que pot ser 1 o -1 indicant quin jugador esta fent el torn  */
+/*      aux: Serà cert si no es el primer torn d'altra forma sera fals   */
+/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
+/*      haCapturat: cert. Un boolea referenciat que el fem servir per evaluar si s'ha realitzat una captura */
+/* POST: cert si s'ha pogut realitzat el moviment, fals d'altra forma */
 bool torn_Jugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &haCapturat) {
   e.mostra(torn_actual);
   cout << "================================" << endl << endl;
@@ -483,12 +512,11 @@ bool torn_Jugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &h
 
 
 
-//---- 
+//---- Un cop acaba la partida, mostrar per pantalla el resultat
 
-/* PRE:  */
-/* POST: */
+/* PRE: e es l'objecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 void terminar(escaquer &e) {
-  util::neteja();
+  //util::neteja();
   cout << "---- FINAL DE PARTIDA ----" << endl;
   cout << "================================";
   e.mostra();
@@ -496,29 +524,27 @@ void terminar(escaquer &e) {
   avalua(e);
 }
 
- 
+//---- Programa principal
 
-//---- Descripcio
 int main() {
-  // 1. Inicialitzar l'escaquer de mida n·n
   int tamany, opcio;
-  bool haCapturat;
   coord posicio;
 
+  // 1. Inicialitzar l'escaquer de mida n·n
   escaquer e = començar_partida(tamany, opcio);
 
   // 2. Inicialitzar el torn a les peçes BLANQUES
   int torn_actual;
   passa_torn(e, torn_actual, opcio);
 
-  // 3. Comprovar que el jugador que te el torn pugui fer algun moviment. 
-  //    En cas que no pugui, haurà de passar el torn al seu contrincant.
-  bool seguimJugant = true;
-  bool aux = false;
+  bool seguimJugant = true; // Si ha ficat coordenades fora del tauler indica que acaba la partida
+  bool aux = false; // Per no mostrar avalua el primer torn
+  bool haCapturat;
   while (seguimJugant) {
     haCapturat = false;
 
-    // Mirem si l'equip pot tirar alguna fixa
+    // 3. Comprovar que el jugador que te el torn pugui fer algun moviment. 
+    //    En cas que no pugui, haurà de passar el torn al seu contrincant.
     int temp;
     if (torn_actual == casella::NEGRA) temp = casella::DAMA_NEGRA;
     else if (torn_actual == casella::BLANCA) temp = casella::DAMA_BLANCA;
@@ -528,9 +554,9 @@ int main() {
       passa_torn(e, torn_actual, opcio);
     }
 
-    // 4.1 Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
+    // 4.(especial) Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
     if (opcio == 2 and torn_actual == casella::NEGRA) torn_Ordinador(e,tamany,haCapturat);
-    // 4.2 Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
+    // 4. Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
     else seguimJugant = torn_Jugador(e,torn_actual,aux,tamany,haCapturat);
 
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura

@@ -7,6 +7,10 @@ using namespace std;
    
 ostream& operator<<(ostream &os, const arbre<coord> &x);
 /* Pre: cert */
-/* Post: s'han escrit al canal estandard de sortida els elements de x */  
+/* Post: s'han escrit al canal estandard de sortida els elements de x */
+
+int altura(const arbre<coord> &a);
+/* Pre: cert */
+/* Post: s'han escrit al canal estandard de sortida els elements de x */
 
 #endif
