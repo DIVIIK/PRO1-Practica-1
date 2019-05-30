@@ -25,9 +25,7 @@ ostream& operator<<(ostream &os, const arbre<coord> &x)
   return os;
 }
 
-
-
-//---- 
+//---- Mirar altura d'un arbre
 
 /* PRE: a = A  */
 /* POST: El resultat es el nombre de nodes de l'arbre A */
@@ -47,4 +45,3 @@ int altura(const arbre<coord> &a) {
   }
   return nnodes;
 }
-

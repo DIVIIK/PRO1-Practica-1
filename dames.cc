@@ -27,8 +27,8 @@ bool comprova_equip(escaquer &e, int &turnActual, coord &c) {
 /* POST: Crea un objecte tipus escaquer inicialitzat amb tamany N */
 escaquer començar_partida(int &tamany, int &opcio) {
   //util::neteja();
-  cout << endl << "La Dimensió de l'escaquer ha de ser múltiple de 2 i 8 com a minim" << endl;
-  cout << "Quina és la Dimensió ? : " ;
+  cout << endl << "La Dimensió de l'escaquer ha de ser múltiple de 2 i 8 com a minim " << endl;
+  cout << "Quina és la Dimensió ? : ";
   cin >> tamany;
   escaquer e(tamany);
 
@@ -83,7 +83,7 @@ bool demana_coordenades(int &tamany, coord &c) {
   bool seguimJugant = true;
  
   // Millor que ficar un operator >> a la classe coord ?
-  cout << "Fila i columna (1-" << tamany << "): ";
+  cout << "Fila i Columna (1-" << tamany << "): ";
   cin >> fila;
 
   if (fila < 1 or fila > tamany) seguimJugant = false;
@@ -114,12 +114,12 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 
   while (not moviment_valid and seguimJugant) {
 
-    cout << "Casella Origen" << endl;
+    cout << "Casella Origen " << endl;
     coord cini;
     seguimJugant = demana_coordenades(tamany,cini);
 
     if (seguimJugant) {
-      cout << "Casella Final" << endl;
+      cout << endl << "Casella Final " << endl;
       coord cfin;
       seguimJugant = demana_coordenades(tamany,cfin);
 
@@ -146,7 +146,7 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
         } else moviment_valid = false;
       }
       
-      if (seguimJugant and not moviment_valid) cout << "Error: Posició ja ocupada o moviment no vàlid."<< endl;
+      if (seguimJugant and not moviment_valid) cout << endl << "Error: Posició ja ocupada o moviment no vàlid."<< endl;
 
     }
   }
@@ -159,8 +159,8 @@ bool introduir_moviment(escaquer &e,int &tamany, int &color, bool &haCapturat) {
 /* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 void avalua(escaquer &e) {
   int val = e.avalua();
-  if (val > 0) cout<<"Guanyen les blanques."<<endl;
-  else if (val < 0) cout<<"Guanyen les negres."<<endl;
+  if (val > 0) cout<<"Guanyen les Blanques"<<endl;
+  else if (val < 0) cout<<"Guanyen les Negres"<<endl;
   else cout<<"EMPAT"<<endl;
 }
 
@@ -175,8 +175,8 @@ bool hem_acabat(escaquer &e, int &tamany) {
   bool res = false;
   int b = 0;
   int n = 0;
-  for (int x = 0; x < tamany; ++x)
-    for (int y = 0; y < tamany; ++y)
+  for (unsigned int x = 0; x < tamany; ++x)
+    for (unsigned int y = 0; y < tamany; ++y)
       if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) ++n;
       else if (e(coord(x,y)).valor() == casella::BLANCA or e(coord(x,y)).valor() == casella::DAMA_BLANCA) ++b;
   if (n == 0 or b == 0 ) res = true;
@@ -367,7 +367,7 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
     // Buscar una fixa amb moviments per fer la tirada
     vector<coord> cinis;
     vector<list<coord> > v_moviments;
-    for (int i = 0; i < coords.size(); ++i) {
+    for (unsigned int i = 0; i < coords.size(); ++i) {
       list<coord> temp = e.mov_possibles(coords[i]);
       if (not temp.empty()) {
         v_moviments.push_back(temp);
@@ -388,7 +388,7 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
       // Coordenada final aleatoria
       aleatori = rand() % moviments.size();
       list<coord>::iterator it = moviments.begin();
-      for (int i = 0; i < aleatori; ++i) ++it;
+      for (unsigned int i = 0; i < aleatori; ++i) ++it;
 
       coord cfin = *it;
       e.posa_fitxa(cini, cfin, e(cini).valor());
@@ -426,8 +426,8 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
   list<arbre<coord> >::iterator it = arbres.begin();
   // Obtenir coordenades
   vector<coord> coords;
-  for (int x = 0; x < tamany; ++x) {
-    for (int y = 0; y < tamany; ++y) {
+  for (unsigned int x = 0; x < tamany; ++x) {
+    for (unsigned int y = 0; y < tamany; ++y) {
       if (e(coord(x,y)).valor() == casella::NEGRA or e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
         coords.push_back(coord(x,y));
         
@@ -494,17 +494,15 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
 
 /* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 /*      torn actual: Un nombre que pot ser 1 o -1 indicant quin jugador esta fent el torn  */
-/*      aux: Serà cert si no es el primer torn d'altra forma sera fals   */
 /*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
 /*      haCapturat: cert. Un boolea referenciat que el fem servir per evaluar si s'ha realitzat una captura */
 /* POST: cert si s'ha pogut realitzat el moviment, fals d'altra forma */
-bool torn_Jugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &haCapturat) {
+bool torn_Jugador(escaquer &e, int &torn_actual, int &tamany, bool &haCapturat) {
   e.mostra(torn_actual);
   cout << "================================" << endl << endl;
 
   // Mostrar el resultat provisional de la partida
-  if (aux) avalua(e); 
-  else aux = true;
+  avalua(e); 
 
   // 5. Demanar a la persona que te el torn un moviment, es a dir, la posicio inicial (fila, columna)
   //    i la posició final (fila, columna). Si alguna fila o alguna columna no estan entre 1 i n voldra
@@ -522,8 +520,8 @@ bool torn_Jugador(escaquer &e, int &torn_actual, bool &aux, int &tamany, bool &h
 /* PRE: e es l'objecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 void terminar(escaquer &e) {
   //util::neteja();
-  cout << "---- FINAL DE PARTIDA ----" << endl;
-  cout << "================================";
+  cout << endl << "FINAL DE PARTIDA !! " << endl;
+  cout << "====================";
   e.mostra();
   cout<<endl;
   avalua(e);
@@ -543,7 +541,6 @@ int main() {
   passa_torn(e, torn_actual, opcio);
 
   bool seguimJugant = true; // Si ha ficat coordenades fora del tauler indica que acaba la partida
-  bool aux = false; // Per no mostrar avalua el primer torn
   bool haCapturat;
   while (seguimJugant) {
     haCapturat = false;
@@ -562,7 +559,7 @@ int main() {
     // 4.(especial) Quan és el torn de l'ordinador el programa generarà una llista d'arbres corresponents a les diferents peces que es poden moure.
     if (opcio == 2 and torn_actual == casella::NEGRA) torn_Ordinador(e,tamany,haCapturat);
     // 4. Mostrar per pantalla l’escaquer indicant els moviments possibles que te la persona amb el torn.
-    else seguimJugant = torn_Jugador(e,torn_actual,aux,tamany,haCapturat);
+    else seguimJugant = torn_Jugador(e,torn_actual,tamany,haCapturat);
 
     // 9. Mostrar el resultat provisional de la partida i canviar el torn si no s'ha produit una captura
     if (seguimJugant) {

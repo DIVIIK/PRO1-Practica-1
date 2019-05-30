@@ -15,6 +15,7 @@ Quina opció vols ? :
 8 B - B - B - B -
 ================================
 
+EMPAT
 Casella Origen 
 Fila i Columna (1-8): 
 Casella Final 
@@ -189,7 +190,7 @@ Casella Origen
 Fila i Columna (1-8): 
 Casella Final 
 Fila i Columna (1-8): 
-Enhorabona has aconseguir una DAMA!! 
+Enhorabona has aconseguit una DAMA!! 
 ========== Jugador N ==========
   1 2 3 4 5 6 7 8
 1 - N - N - N - N

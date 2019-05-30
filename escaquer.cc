@@ -13,11 +13,11 @@ void convertir_dama(std::vector<std::vector<casella> > &t, coord &c, int &color)
   // Comproba si encara no es dama i segons l'equip la fila apropiada
   if(color == casella::BLANCA and c.x == 0) {
     t[c.x][c.y].omple(color+1); // Converteix a dama
-    cout << endl << "Enhorabona has aconseguir una DAMA!!" << endl;
+    cout << endl << "Enhorabona has aconseguit una DAMA!! ";
   }
   else if (color == casella::NEGRA and c.x == t.size()-1) {
     t[c.x][c.y].omple(color-1); // Converteix a dama
-    cout << endl << "Enhorabona has aconseguir una DAMA!!" << endl;
+    cout << endl << "Enhorabona has aconseguit una DAMA!! ";
   }
 }
 
@@ -28,7 +28,7 @@ void mostra_taula(const std::vector<std::vector<casella> > &tau) {
   cout << endl << " ";
   if (tau.size() > 9) cout << " ";
 
-  for (int i = 1; i <= tau.size(); ++i) {
+  for (unsigned int i = 1; i <= tau.size(); ++i) {
   	cout << " ";
     if (tau.size() > 9 and i <= 9) cout << "0";
     cout << i ;
@@ -36,10 +36,10 @@ void mostra_taula(const std::vector<std::vector<casella> > &tau) {
 
   cout << endl;
 
-  for (int i = 0; i < tau.size(); ++i) {
+  for (unsigned int i = 0; i < tau.size(); ++i) {
     if (tau.size() > 9 and i < 9) cout << "0";
     cout << i+1 ;
-    for (int j = 0; j < tau.size(); j++){
+    for (unsigned int j = 0; j < tau.size(); j++){
     	if (tau.size() > 9) cout << " ";
   		cout << " " << tau[i][j].mostra();
     }
@@ -97,9 +97,9 @@ escaquer::escaquer(nat n) {
   taula = vector<vector<casella> >(n,vector<casella>(n,casella())); // IMPORTANT!!! coord(x,y) x=files y=columnes
   // inicialitza les caselles del escaquer
   // Primer les blanques
-  int j = 0;
-  for (int i = n-1; i > n-4; --i) { // Files
-    for (;j < n; j+=2) // Columnes
+  unsigned int j = 0;
+  for (unsigned int i = n-1; i > n-4; --i) { // Files
+    for (; j < n; j+=2) // Columnes
       taula[i][j].omple(1);
 
     if (i == n-1) j = 1;
@@ -108,8 +108,8 @@ escaquer::escaquer(nat n) {
 
   // Ara les negres
   j = 1;
-  for (int i = 0; i < 3; ++i) {
-    for (;j < n; j+=2)
+  for (unsigned int i = 0; i < 3; ++i) {
+    for (; j < n; j+=2)
       taula[i][j].omple(-1);
 
     if (i == 0) j = 0;
@@ -155,15 +155,15 @@ void escaquer::mostra(int color) const {
   else if (color == casella::NEGRA) color_Dama = casella::DAMA_NEGRA; 
 
   vector<coord> coords;
-  for (int x = 0; x < taula.size(); ++x)
-    for (int y = 0; y < taula.size(); ++y)
+  for (unsigned int x = 0; x < taula.size(); ++x)
+    for (unsigned int y = 0; y < taula.size(); ++y)
       if (taula[x][y].valor() == color or taula[x][y].valor() == color_Dama )
         coords.push_back(coord(x,y));
   
   std::vector<std::vector<casella> > taula_temp = taula;
 
   // Obtenir les caselles amb possible moviment
-  for (int i = 0; i < coords.size(); ++i) {
+  for (unsigned int i = 0; i < coords.size(); ++i) {
     list<coord> coords_possible = mov_possibles(coords[i]);
     while (not coords_possible.empty()) { // es podria fer fins a end() amb iterador
       coord c = *coords_possible.begin();
@@ -185,8 +185,8 @@ int escaquer::avalua() const {
   int b = 0;
   int n = 0;
 
-  for (int x = 0; x < taula.size(); ++x)
-    for (int y = 0; y < taula.size(); ++y)
+  for (unsigned int x = 0; x < taula.size(); ++x)
+    for (unsigned int y = 0; y < taula.size(); ++y)
       if ( (taula[x][y].valor() == casella::BLANCA) or (taula[x][y].valor() == casella::DAMA_BLANCA)) ++b;
       else if ( (taula[x][y].valor() == casella::NEGRA) or (taula[x][y].valor() == casella::DAMA_NEGRA)) ++n;
 
@@ -294,8 +294,8 @@ bool escaquer::pot_jugar(int color) const {
   bool potJugar = false;
 
   vector<coord> coords;
-  for (int x = 0; x < taula.size(); ++x)
-    for (int y = 0; y < taula.size(); ++y)
+  for (unsigned int x = 0; x < taula.size(); ++x)
+    for (unsigned int y = 0; y < taula.size(); ++y)
       if (taula[x][y].valor() == color )
         coords.push_back(coord(x,y));
 

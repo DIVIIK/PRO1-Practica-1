@@ -11,6 +11,6 @@ ostream& operator<<(ostream &os, const arbre<coord> &x);
 
 int altura(const arbre<coord> &a);
 /* Pre: cert */
-/* Post: s'han escrit al canal estandard de sortida els elements de x */
+/* Post: El resultat es el nombre de nodes de l'arbre A */
 
 #endif
