@@ -41,7 +41,9 @@ int altura(const arbre<coord> &a) {
     // HIP: El valor y conte el numero de nodes del fill esquerre de A.
     int z = altura(a2);
     // HIP: El valor z conte el numero de nodes del fill dret de A.
-    nnodes = y + z + 1;
+    if (y > z) nnodes = y + 1;
+    else nnodes = z + 1;
+    
   }
   return nnodes;
 }

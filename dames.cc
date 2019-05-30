@@ -236,12 +236,7 @@ void omple_Arbres(escaquer &e, arbre<coord> &a, bool dama) {
     arbre<coord> fe = a.fe();
     arbre<coord> fd = a.fd();
 
-    /*cout << "Miramos desde " << a.arrel().mostra1() << endl;
-      if (not fe.es_buit()) cout << "Podemos ir a " << fe.arrel().mostra1() << endl;
-      if (not fd.es_buit()) cout << "Podemos ir a " << fd.arrel().mostra1() << endl;
-    */
-
-    escaquer temp(12);
+    escaquer temp(0);
     temp = e;
 
     if (not fe.es_buit()) {
@@ -264,28 +259,83 @@ void omple_Arbres(escaquer &e, arbre<coord> &a, bool dama) {
 
 
 
+//---- Ens indica si l'arbre referenciat conté alguna dama a un dels seus nodes
+
+/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
+/*      a: a = A  */
+/* POST: cert si hi ha una dama a A, fals d'altra forma */
+bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
+  bool res = false; 
+  if (not a.es_buit()) {
+    arbre<coord> a1 = a.fe();
+    arbre<coord> a2 = a.fd();
+
+    // Mirar valor fixa a capturar
+    direccio dir;
+    dir.init();
+    coord cini = a.arrel();
+    coord cfin;
+    int valorFixa;
+    bool trobat = false;
+
+    while (not dir.is_stop() and not trobat) {
+      cfin = cini + dir.despl() + dir.despl();  
+
+      if (not a1.es_buit()) if (cfin == a1.arrel()) trobat = true;
+      if (not trobat and not a2.es_buit()) if (cfin == a2.arrel()) trobat = true;
+
+      if (trobat) valorFixa = e(cini + dir.despl()).valor();
+      ++dir;
+    }
+  
+    if (valorFixa == casella::DAMA_BLANCA) res = true;
+    else {
+      if (cami_amb_Dama(e,a1)) res = true;
+      if (cami_amb_Dama(e,a2)) res = true;
+    }
+  }
+  return res;
+}
+
+
+
 //---- Executa l'operació de captura durant el turn de l'ordinador
 
 /* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
 /*      a: a = A. Serà buit si no pot capturar ninguna fixa, sino serà l'arbre amb la millor captura possible */
 void captura(escaquer &e, arbre<coord> &a) {
-    // Si l'arbre no es buit podrem capturar
-    if (not a.es_buit()) {
-      arbre<coord> fe = a.fe();
-      arbre<coord> fd = a.fd();
+  // 7.(especial) De la llista d'arbres resultant del pas anterior, el programa ha d'escollir moure
+  // la peça corresponent a l'arbre amb l'alçada maxima. En cas d'empat s'escollira el cami 
+  // que capturi alguna Dama. Si hi ha mes d'un cami amb aquesta situacio el programa escullira
+  // un cami a l'atzar.
 
-      // L'arbre esquerre té mes captures
-      if (altura(fe) > altura(fd)) {
+  if (not a.es_buit()) {
+    arbre<coord> fe = a.fe();
+    arbre<coord> fd = a.fd();
+
+    // L'arbre esquerre té mes captures
+    if (altura(fe) > altura(fd)) {
+      e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
+      captura(e,fe);
+
+    // L'arbre dret té mes captures
+    } else if (altura(fe) < altura(fd)) {
+      e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
+      captura(e,fd);
+
+    // Els dos arbres tenen la mateixa altura
+    } else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) {
+
+      // Mirem si algu captura una DAMA i sino agafem un dels dos de forma aleatoria
+      if (cami_amb_Dama(e,fe)) {
         e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
         captura(e,fe);
 
-      // L'arbre dret té mes captures
-      } else if (altura(fe) < altura(fd)) {
+      } else if (cami_amb_Dama(e,fd)) {
         e.posa_fitxa( a.arrel(), fd.arrel(), e(a.arrel()).valor() );
         captura(e,fd);
 
-      // Els dos arbres tenen la mateixa altura, agafem un dels dos de forma aleatoria
-      } else if (altura(fe) == altura(fd) and (altura(fe) + altura(fd)) != 0) {
+      } else {
         int aleatori = rand() % 1;
 
         if (aleatori == 1) {
@@ -297,10 +347,9 @@ void captura(escaquer &e, arbre<coord> &a) {
           captura(e,fd);
           // HIP: fd es l'arbre fill de l'arbre inicial
         }
-
-      // No hi han mes fills 
-      } // else 
+      }
     }
+  }
 }
 
 
@@ -351,45 +400,6 @@ void moviment_Ordinador(escaquer &e, list<arbre<coord> > &arbres, vector<coord> 
     cout << "L'arbre construit es" << endl << a << endl  << " i té alçada " << altura(a)-1 << endl;
     captura(e,a);
   } else cout << "Ni capturo ni muevo" << endl;
-}
-
-
-//---- Ens indica si l'arbre referenciat conté alguna dama a un dels seus nodes
-
-/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
-/*      a: a = A  */
-/* POST: cert si hi ha una dama a A, fals d'altra forma */
-bool cami_amb_Dama(escaquer &e, arbre<coord> &a) {
-  bool res = false; 
-  if (not a.es_buit()) {
-    arbre<coord> a1 = a.fe();
-    arbre<coord> a2 = a.fd();
-
-    // Mirar valor fixa a capturar
-    direccio dir;
-    dir.init();
-    coord cini = a.arrel();
-    coord cfin;
-    int valorFixa;
-    bool trobat = false;
-
-    while (not dir.is_stop() and not trobat) {
-      cfin = cini + dir.despl() + dir.despl();  
-
-      if (not a1.es_buit()) if (cfin == a1.arrel()) trobat = true;
-      if (not trobat and not a2.es_buit()) if (cfin == a2.arrel()) trobat = true;
-
-      if (trobat) valorFixa = e(cini + dir.despl()).valor();
-      ++dir;
-    }
-  
-    if (valorFixa == casella::DAMA_BLANCA) res = true;
-    else {
-      if (cami_amb_Dama(e,a1)) res = true;
-      if (cami_amb_Dama(e,a2)) res = true;
-    }
-  }
-  return res;
 }
 
 
@@ -450,24 +460,17 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
 
         //cout << "DEBUG: Tots els arbres" << endl << arb << endl;
 
-        // 7.(especial) De la llista d'arbres resultant del pas anterior, el programa ha d'escollir moure
-        // la peça corresponent a l'arbre amb l'alçada maxima. En cas d'empat s'escollira el cami 
-        // que capturi alguna Dama. Si hi ha mes d'un cami amb aquesta situacio el programa escullira
-        // un cami a l'atzar.
+        // Escollim l'arbre amb mes altura, despres escollirem el millor cami de l'arbre
         if (altura(arb) > 1 and altura(arb) > altura(arb_Max)) arb_Max = arb;
         else if (altura(arb) == altura(arb_Max)) {
           // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
           if (cami_amb_Dama(e,arb)) arb_Max = arb;
         }
 
-        // Si tenim una dama hem de jugar amb els dos arbres
+        // Si tenim una dama hem de jugar amb els dos arbres per trobar el millor cami
         if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
-          //cout << "Arb2: " << endl << arb2 << endl;
-          //cout << "Arb1 " << endl << arb << endl;
-
           if (altura(arb2) > 1 and altura(arb2) > altura(arb_Max)) {
             arb_Max = arb2;
-            //cout << "problemas" << endl;
           } else if (altura(arb2) == altura(arb_Max)) {
             // Si tenim dos camins iguals, tindra prioritat aquell que capturi una dama
             if (cami_amb_Dama(e,arb2)) arb_Max = arb2;
