@@ -97,6 +97,9 @@ escaquer::escaquer(nat n) {
   taula = vector<vector<casella> >(n,vector<casella>(n,casella()));
   // IMPORTANT!!! coord(x,y) x=files y=columnes
 
+  /* 
+
+
   // inicialitza les caselles del escaquer
   // Primer les blanques
   int j = 0;
@@ -117,7 +120,36 @@ escaquer::escaquer(nat n) {
     if (i == 0) j = 0;
     else j = 1;
   }
+  
+  */ 
 
+  // TESTING 
+  /// Inicialitzem 10 valors per fer proves
+  taula[0][5].omple(-1);
+
+  taula[1][4].omple(1);
+  taula[1][6].omple(1);
+
+  taula[3][2].omple(1);
+  taula[3][4].omple(1);
+  taula[3][6].omple(1);
+  taula[3][8].omple(1);
+
+  taula[5][0].omple(1);
+  taula[5][2].omple(1);
+  taula[5][4].omple(1);
+  taula[5][6].omple(1);
+  taula[5][8].omple(1);
+  taula[5][10].omple(-1);
+
+  taula[7][2].omple(-1);
+  taula[7][4].omple(1);
+  taula[7][6].omple(-1);
+  taula[7][8].omple(-1);
+
+  taula[9][6].omple(1);
+
+  taula[11][1].omple(1);
 }
 
 //---- Diu si les coord p estan dins dels limits del escaquer.
@@ -238,6 +270,9 @@ void escaquer::es_pot_capturar(coord cini, direccio d, bool &capturar, coord &c)
     } else {
       valorDarrere = taula[c.x][c.y].valor();
       valorDespl = taula[cDespl.x][cDespl.y].valor();
+
+      //cout << "Miramos si se puede capturar de " << cini.mostra1() << " a " << c.mostra1() << endl;
+      //cout << "cini vale " << valorIni << ", cfin vale " << valorDespl << endl;
 
       // Comprovacions moviment, que sigui de dos posicions i que realment sigui captura
       if (comprova_direccio(valorIni,d) and cini + d.despl() + d.despl() == c and valorDespl != casella::LLIURE) {

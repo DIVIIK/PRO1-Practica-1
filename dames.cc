@@ -166,18 +166,6 @@ void avalua(escaquer &e) {
 
 
 
-//---- Desmarca totes les fixes del tauler per no interferir en les seguents iteracions
-
-/* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
-/*      tamany: Indica cuantes fixes te cada fila/columna del tauler   */
-void neteja_visitades(escaquer &e, int &tamany) {
-  for (int x = 0; x < tamany; ++x)
-    for (int y = 0; y < tamany; ++y)
-      e(coord(x,y)).desmarca();
-}
-
-
-
 //---- Mira si queden fixes de un dels dos equips per saber si ha acabat la partida
 
 /* PRE: e: Ojecte instanciat de la classe escaquer que conté el tauler i les operacions necessaries per jugar una partida */
@@ -207,7 +195,6 @@ void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
   arbre<coord> empty;
   coord cfin;
   coord cini = a.arrel();
-  e(cini).marca();
   direccio dir;
   dir.init();
 
@@ -216,11 +203,11 @@ void busca_Fills(escaquer &e, arbre<coord> &a, bool &dama) {
     cfin = cini + dir.despl() + dir.despl();
     cfins.push_back(cfin);
     if (e.dins_limits(cfin)) {
+      
       bool esPot = false;
-      if (not e(cfin).es_visitada()) e.es_pot_capturar(cini, dir, esPot, cfin);
-      if (esPot) {
-        e(cfin).marca();
+      e.es_pot_capturar(cini, dir, esPot, cfin);
 
+      if (esPot) {
         // 5 - Si es pot capturar direccio OEST es creara un node fill esquerre amb les coordenades finals despres de la captura
         if (dir.mostra() == "SUD-OEST" and not dama) a = arbre<coord> (cini, arbre<coord>(cfin, empty, empty), a.fd());
         // 5 - Si es pot capturar direccio EST es creara un node fill esquerre amb les coordenades finals despres de la captura
@@ -248,11 +235,27 @@ void omple_Arbres(escaquer &e, arbre<coord> &a, bool dama) {
     busca_Fills(e,a,dama);
     arbre<coord> fe = a.fe();
     arbre<coord> fd = a.fd();
+
+    /*cout << "Miramos desde " << a.arrel().mostra1() << endl;
+      if (not fe.es_buit()) cout << "Podemos ir a " << fe.arrel().mostra1() << endl;
+      if (not fd.es_buit()) cout << "Podemos ir a " << fd.arrel().mostra1() << endl;
+    */
+
+    escaquer temp(12);
+    temp = e;
+
+    if (not fe.es_buit()) {
+      temp.posa_fitxa(a.arrel(), fe.arrel(), e(a.arrel()).valor());
+      omple_Arbres(temp,fe,dama);
+      // HIP: fe es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
+    }
     
-    omple_Arbres(e,fe,dama);
-    // HIP: fe es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
-    omple_Arbres(e,fd,dama);
-    // HIP: fd es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
+    temp = e;
+    if (not fd.es_buit()) {
+      temp.posa_fitxa(a.arrel(), fd.arrel(), e(a.arrel()).valor());
+      omple_Arbres(temp,fd,dama);
+      // HIP: fd es un arbre amb fills esquerre i drets, aquestos poden estar buits o no
+    }
 
     // Creem l'arbre definitiu amb els fills dels arbres esquerre i dret
     a = arbre<coord> (a.arrel(), fe, fd);
@@ -270,6 +273,7 @@ void captura(escaquer &e, arbre<coord> &a) {
     if (not a.es_buit()) {
       arbre<coord> fe = a.fe();
       arbre<coord> fd = a.fd();
+
       // L'arbre esquerre té mes captures
       if (altura(fe) > altura(fd)) {
         e.posa_fitxa( a.arrel(), fe.arrel(), e(a.arrel()).valor() );
@@ -435,7 +439,6 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
         // 6.(especial) Si la peça es una Dama i pot capturar donat que es pot moure en les 4 direccions
         // es crearan dos arbres
         if (e(coord(x,y)).valor() == casella::DAMA_NEGRA) {
-          neteja_visitades(e,tamany);
           arb2 = arbre<coord>(coord(x,y),empty,empty);
             omple_Arbres(e,arb2,true);
           if (altura(arb2) > 1) {
@@ -478,7 +481,6 @@ void torn_Ordinador(escaquer &e, int &tamany, bool &haCapturat) {
 
   //util::espera(0.6);
   moviment_Ordinador(e,arbres,coords,arb_Max);
-  neteja_visitades(e,tamany);
   //util::espera(1.7);
   //util::neteja();
 }
